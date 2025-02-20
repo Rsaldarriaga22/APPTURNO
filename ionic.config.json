@@ -1,0 +1,7 @@
+{
+  "name": "movil_turno",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

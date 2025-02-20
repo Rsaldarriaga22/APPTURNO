@@ -1,0 +1,26 @@
+
+<ion-content [fullscreen]="true">
+  <div style="margin-left: 20px;margin-top: 30px;">
+    <ion-button color="light" (click)="back()"><ion-icon name="chevron-back-outline"></ion-icon></ion-button>
+  </div>
+  
+  
+  
+  <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+    <img src="../../assets/image/logo.png" style="width: 30%;" />
+  </div>
+
+
+    <ion-text class="ttitulo">
+     <p> AREAS </p>
+    </ion-text>
+      <ion-text class="subtitulo"><p>Seleccione su área para proceder con la asignación de su turno.</p></ion-text>
+      <div *ngFor="let card of areas.data; let i = index" (click)="onCardClick(card)" class="tarjeta">
+        <ion-avatar style="background-color: rgb(238, 238, 238); display: flex; justify-content: center; align-items: center; width: 40px; height: 40px;">
+          <ion-icon [name]="card.aicon|| 'help-outline'" color="primary"></ion-icon>
+        </ion-avatar>
+        <p>{{card.anombre  |  uppercase}}</p>
+      </div>
+   
+
+</ion-content>

@@ -1,0 +1,14 @@
+
+ionic capacitor add android
+ionic capacitor sync android
+ionic capacitor open android
+
+
+
+
+npx cap copy android
+ionic capacitor build android --prod
+
+rootProject.ext.minSdkVersion
+
+

@@ -1,0 +1,94 @@
+// PANTALLA GRANDE
+@media (min-width: 600px) {
+    .tarjeta {
+      margin-right: 13%;
+      margin-left: 13%;
+      margin-bottom: 3%;
+      padding: 23px 0px;
+  
+      display: flex;
+      flex-direction: column;
+      background-color: white;
+      border-radius: 12px;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(65, 152, 252, 0.377);
+      font-family: "Times New Roman", Times, serif;
+      font-weight: bold;
+      font-size: 19px;
+  
+    }
+  
+    .avatar {
+      text-align: center;
+    }
+  
+    .ttitulo {
+      text-align: center;
+      font-weight: bold;
+      font-family: "Times New Roman", Times, serif;
+      font-size: xx-large;
+    padding: 0px;
+    }
+  
+    .subtitulo {
+      text-align: center;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 18px;
+      color: grey;
+    }
+    .name {
+      text-align: center;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 18px;
+      // color: grey;
+    }
+  
+    .subtitulo p {
+      padding-bottom: 25px;
+      padding-left: 25px;
+      padding-right: 25px;
+    }
+    
+  }
+  
+  // PANTALLA PEQUEÑA
+  @media (max-width: 600px) {
+    .tarjeta {
+      margin-right: 8%;
+      margin-left:8%;
+      margin-bottom: 3%;
+      padding: 23px 0px;
+  
+      display: flex;
+      flex-direction: column;
+      background-color: white;
+      border-radius: 12px;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(65, 152, 252, 0.377);
+      font-family: "Times New Roman", Times, serif;
+      font-weight: bold;
+      font-size: 19px;
+    }
+  
+    .ttitulo {
+      text-align: center;
+      font-weight: bold;
+      font-family: "Times New Roman", Times, serif;
+      font-size: x-large;
+    }
+  
+    .subtitulo {
+      text-align: center;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 16;
+    }
+  
+    .subtitulo p {
+      padding-left: 13px;
+      padding-right: 13px;
+    }
+  }
