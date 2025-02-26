@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { ChangeDetectorRef, Injectable } from '@angular/core';
 import { LoadingController } from '@ionic/angular';
 import { BehaviorSubject } from 'rxjs';
 
@@ -10,22 +10,24 @@ export class LoadingServicesService {
 
   constructor(private loadingController: LoadingController) {}
 
-  async loadingTrue(message: string = 'Cargando...') {
-    if (!this.loading) { // Evitar crear múltiples loadings
+  async show(message: string = 'Cargando...') {
+    if (!this.loading) {
       this.loading = await this.loadingController.create({
         message,
-        spinner: 'circles'
+        spinner: 'circles', // Puedes cambiarlo a 'dots', 'crescent', etc.
+        translucent: true,
+        backdropDismiss: false,
       });
       await this.loading.present();
     }
   }
+  async hide() {
+    setTimeout( async ()=>{
 
-  async loadingFalse() {
-    console.log('si')
-    if (this.loading) {
-      await this.loading.dismiss();
-      this.loading = null;
-      console.log('entro')
-    }
+      if (this.loading) {
+        await this.loading.dismiss();
+        this.loading = null;
+      }
+    }, 1000)
   }
 }

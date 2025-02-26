@@ -1,23 +1,17 @@
-<!-- <div style="margin-left: 20px;margin-top: 30px;">
-  <ion-button color="light" (click)="back()"><ion-icon name="chevron-back-outline"></ion-icon></ion-button>
-</div> -->
 <ion-content class="ion-padding ion-text-center">
-  
   <div style="text-align: center; margin-top:10%; padding-bottom: 14px;">
     <img src="../../assets/image/logo.png" style="width: 28%;" />
   </div>
 
-
   <ion-text class="ttitulo">
     <p> SISTEMA DE TURNOS </p>
-    <!-- <p style="font-size: 16px;"> Agende su turno </p> -->
   </ion-text>
 
   <div class="caja">
     <p class="texto" *ngIf="!inputValue ">Ingrese su número de cédula</p>
     <p class="numero">{{ inputValue }}</p>
   </div>
- 
+
 </ion-content>
 
 
@@ -29,63 +23,3 @@
     <button class="buscar " [ngClass]="{ 'activo': inputValue.length === 10 }" (click)="buscar() ">BUSCAR</button>
   </div>
 </div>
-
-
-
-
-
-
-
-
-<!-- <ion-content >
-  <app-spinner></app-spinner>
-  
-  <div style="text-align: center; padding-top: 50px; padding-bottom: 20px;">
-    <img src="../../assets/image/logo.png" style="width: 30%;" />
-  </div>
-
-
-    <ion-text class="ttitulo">
-     <p> SISTEMA DE TURNOS </p>
-    </ion-text>
-
-
-  <div *ngIf="!isLoadingRegister" class="tarjeta">
-    <ion-text class="titulo">INGRESE SU CÉDULA</ion-text>
-    <form [formGroup]="searchForm" (ngSubmit)="onLogin()">
-      <ion-row >
-        <ion-col size="9">
-          <ion-input
-            label="Identificación"
-            label-placement="floating"
-            fill="outline"
-            formControlName="cedula"
-            expand="full"
-            maxlength="10"
-            inputmode="numeric" 
-          >
-          <ion-icon  slot="start" color="secondary" aria-hidden="true" name="apps-outline"></ion-icon>
-          </ion-input>
-
-        </ion-col>
-        <ion-col size="3">
-          <button class="btn btn-login btn-block" 
-          type="submit" style="width: 100%; height: 100%;" 
-          [disabled]="searchForm.invalid"
-          [ngStyle]="{
-            'background': searchForm.invalid ? 'linear-gradient(45deg, #B0C4DE, #B0C4DE)' : 'linear-gradient(45deg, #007BFF, #203b79)',
-            'color': searchForm.invalid ? '#808080' : '#ffffff'
-          }"
-          >
-            Buscar
-          </button>
-        </ion-col>
-      </ion-row>
-    </form>
-  </div>
-
-<div *ngIf="isLoadingRegister">
-  REgistrarse
-</div>
-
-</ion-content> -->

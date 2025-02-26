@@ -1,0 +1,55 @@
+<ion-content [fullscreen]="true">
+  <div style="margin-left: 20px;margin-top: 30px;">
+    <ion-button color="light" (click)="back()"><ion-icon name="chevron-back-outline"></ion-icon></ion-button>
+  </div>
+
+  <div style="text-align: center;  padding-bottom: 3px;">
+    <img src="../../assets/image/logo.png" style="width: 18%;" />
+  </div>
+
+  <div *ngIf="!tipoTurno">
+    <ion-text class="ttitulo">
+      <p> AREAS </p>
+    </ion-text>
+    <ion-text class="name">
+      <p>Hola! {{nombre}} {{apellido}}</p>
+    </ion-text>
+    <ion-text class="subtitulo">
+      <p>Seleccione su área para proceder con la asignación de su turno.</p>
+    </ion-text>
+
+
+    <div *ngFor="let card of areas; let i = index" (click)="onCardClick(card)" class="tarjeta">
+      <ion-avatar
+        style="background-color: rgb(238, 238, 238); display: flex; justify-content: center; align-items: center; width: 13%; height: 13%; padding: 10px;">
+        <img [src]="'assets/icon/' + card.aicon" />
+      </ion-avatar>
+      <p>{{card.anombre | uppercase}}</p>
+    </div>
+
+
+   
+    <ion-grid style="margin: 20px;">
+      <ion-row class="card-container">
+      <div class="card" *ngFor="let card of service; let i = index" (click)="onCardClick(card)">
+        <ion-avatar
+        style="background-color: rgb(238, 238, 238); display: flex; justify-content: center; align-items: center; width: 60px; height: 60px; padding: 10px;">
+        <img [src]="'assets/icon/' + card.aicon" />
+      </ion-avatar>
+        <p>{{card.anombre | uppercase}}</p>
+      </div>
+      </ion-row>
+    </ion-grid>
+
+
+
+
+   
+
+
+
+  </div>
+
+
+
+</ion-content>

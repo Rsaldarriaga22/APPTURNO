@@ -22,17 +22,27 @@ const routes: Routes = [
     loadChildren: () => import('./pages/matriz/home-matriz/home-matriz.module').then( m => m.HomeMatrizPageModule)
   },
   {
-    path: 'areas',
-    loadChildren: () => import('./pages/matriz/areas/areas.module').then( m => m.AreasPageModule)
+    path: 'socio',
+    loadChildren: () => import('./pages/matriz/socio/socio.module').then( m => m.SocioPageModule)
   },
-  {
-    path: 'tipo-usuario',
-    loadChildren: () => import('./pages/matriz/tipo-usuario/tipo-usuario.module').then( m => m.TipoUsuarioPageModule)
-  },
+
   {
     path: 'cliente',
     loadChildren: () => import('./pages/matriz/cliente/cliente.module').then( m => m.ClientePageModule)
   },
+  {
+    path: 'peluqueria',
+    loadChildren: () => import('./pages/matriz/servicios/peluqueria/peluqueria.module').then( m => m.PeluqueriaPageModule)
+  },
+  {
+    path: 'medicina',
+    loadChildren: () => import('./pages/matriz/servicios/medicina/medicina.module').then( m => m.MedicinaPageModule)
+  },
+  {
+    path: 'odontologia',
+    loadChildren: () => import('./pages/matriz/servicios/odontologia/odontologia.module').then( m => m.OdontologiaPageModule)
+  },
+ 
  
   
  

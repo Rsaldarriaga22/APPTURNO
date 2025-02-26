@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { LoadingController, ModalController } from '@ionic/angular';
-import { LoadingServicesService } from 'src/app/services/loading-services.service';
 
 @Component({
   selector: 'app-spinner',

@@ -1,3 +1,36 @@
+
+
+
+
+
+
+
+
+.card {
+  width: 45%;
+   height: 170px;
+  display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 12px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(65, 152, 252, 0.377);
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold;
+    font-size: 19px;
+ }
+
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px; 
+  justify-content: center;
+}
+
+
 // PANTALLA GRANDE
 @media (min-width: 600px) {
   .tarjeta {
@@ -29,23 +62,34 @@
     font-weight: bold;
     font-family: "Times New Roman", Times, serif;
     font-size: xx-large;
-  padding: 0px;
   }
 
+  .ttitulo p{
+    margin: 0;
+    margin-top: 10px;
+    margin-bottom: 15px;
+  }
   .subtitulo {
     text-align: center;
     font-family: "Times New Roman", Times, serif;
     font-size: 18px;
     color: grey;
+    margin: 0;
   }
+ 
   .name {
     text-align: center;
     font-family: "Times New Roman", Times, serif;
     font-size: 18px;
+    margin: 0;
     // color: grey;
   }
 
+  .name p{
+    margin: 0;
+  }
   .subtitulo p {
+    margin: 0;
     padding-bottom: 25px;
     padding-left: 25px;
     padding-right: 25px;
@@ -92,6 +136,7 @@
     padding-right: 13px;
   }
 }
+
 
 // .tarjeta {
 //     margin: 25px;

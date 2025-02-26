@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -10,6 +10,8 @@ import { HomeMatrizPage } from './home-matriz.page';
 
 import { SpinnerModule } from 'src/app/util/spinner/spinner.module';
 import { RouterOutlet } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgxSpinnerModule } from 'ngx-spinner';
 
 
 @NgModule({
@@ -19,8 +21,11 @@ import { RouterOutlet } from '@angular/router';
     ReactiveFormsModule,
     IonicModule,
     HomeMatrizPageRoutingModule,
-    RouterOutlet
+    RouterOutlet,
+    
+    // BrowserAnimationsModule,
   ],
+   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   declarations: [HomeMatrizPage]
 })
 export class HomeMatrizPageModule {}
