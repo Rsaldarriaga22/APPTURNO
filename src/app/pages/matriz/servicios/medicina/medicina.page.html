@@ -69,13 +69,7 @@
       <br>
     </div>
 
-
-
-    <div class="cards">
-      <div class="main-content">
-        <p class="cita"> AGENDAR CITA</p>
-
-        <!-- CARD  NO HAY SEGURO -->
+  <!-- CARD  NO HAY SEGURO -->
         <div style="text-align: center; display: flex; justify-content: center; align-items: center; margin-top: 20px;"
           *ngIf="siTieneSeguroMortuorio == 'noexiste'">
           <div class="error">
@@ -101,6 +95,13 @@
           </div>
         </div>
         <br> <br> <br>
+
+    <div *ngIf="!pendiente">
+    <div class="cards">
+      <div class="main-content">
+        <p class="cita"> AGENDAR CITA</p>
+
+      
         <div *ngIf="siTieneSeguroMortuorio == 'existe'">
 
 
@@ -148,6 +149,7 @@
         </div>
       </div>
       <br> <br>
+    </div>
     </div>
 
 

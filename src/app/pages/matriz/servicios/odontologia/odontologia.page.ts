@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
+import { catchError, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 import { Cliente } from 'src/app/models/Cliente';
 import { Fechac } from 'src/app/models/fechaHora';
 import { Horario } from 'src/app/models/Horario';
@@ -16,40 +17,43 @@ import { PeluqueriaService } from 'src/app/services/peluqueria.service';
   standalone: false,
 })
 export class OdontologiaPage implements OnInit {
-   nombre: any;
-    apellido: any;
-    listaUsuario: any = {}
-    cedula: any;
-    public horariosAll: Horario[] = [];
-    public cantidadTurnosAlDia: number = 0;
-    public diasDisponibles: any[] = [];
-    public tipo: string = '';
-    public tipoSeguro: string = '';
-    public siTieneSeguroMortuorio: string = '';
-    public persona: Persona = new Persona(0, '', '', '', '');
-    public cliente: Cliente = new Cliente(0, 0, null);
-    public solicitudCreate: Solicitud = new Solicitud(0, 0, 0, 0, 0, '', '', '', 0);
-    public solicitudesAlmacenadas: Solicitud[] = [];
-    public ultimasolicitudesAlmacenadas: Solicitud = new Solicitud(0, 0, 0, 0, 0, '', '', '', 0, '', '');
-    public cantidadNumeroDiaUltimaSolicitud: number = 15;
-    selectedDayIndex: number | null = null;
-    public turnoSeleccionadoShow: boolean = false;
-    public turnosShow: boolean = false;
-    public fechaSeleccionada: string = "";
-    public horariosDeServicio: Horario[] = [];
-    public solicitudesRealizadas: Solicitud[] = [];
-    public intervalo: any;
-    public turnoSeleccionado: string = '';
-    public activeBoton: boolean = false;
-    horarioSeleccionado: number | null = null; 
-    public emailPersonaConsultada: string = '';
-    public nombrePersonaConsultada: string = '';
-    public pendiente: boolean = false;
+  private cdr = inject(ChangeDetectorRef)
+  nombre: any;
+  apellido: any;
+  listaUsuario: any = {}
+  cedula: any;
+  public horariosAll: Horario[] = [];
+  public cantidadTurnosAlDia: number = 0;
+  public diasDisponibles: any[] = [];
+  public tipo: string = '';
+  public tipoSeguro: string = '';
+  public siTieneSeguroMortuorio: string = '';
+  public persona: Persona = new Persona(0, '', '', '', '');
+  public cliente: Cliente = new Cliente(0, 0, null);
+  public solicitudCreate: Solicitud = new Solicitud(0, 0, 0, 0, 0, '', '', '', 0);
+  public solicitudesAlmacenadas: Solicitud[] = [];
+  public ultimasolicitudesAlmacenadas: Solicitud = new Solicitud(0, 0, 0, 0, 0, '', '', '', 0, '', '');
+  public cantidadNumeroDiaUltimaSolicitud: number = 15;
+  selectedDayIndex: number | null = null;
+  public turnoSeleccionadoShow: boolean = false;
+  public turnosShow: boolean = false;
+  public fechaSeleccionada: string = "";
+  public horariosDeServicio: Horario[] = [];
+  public solicitudesRealizadas: Solicitud[] = [];
+  public intervalo: any;
+  public turnoSeleccionado: string = '';
+  public activeBoton: boolean = false;
+  horarioSeleccionado: number | null = null;
+  public emailPersonaConsultada: string = '';
+  public nombrePersonaConsultada: string = '';
+  public pendiente: boolean = false;
 
-  constructor(    private loaginServices: LoadingServicesService,
-       private _servicesPeluqueria: PeluqueriaService,
-       private navController: NavController,
-       private alerta: AlertService,) { }
+  mostraCard: boolean = false;
+
+  constructor(private loaginServices: LoadingServicesService,
+    private _servicesPeluqueria: PeluqueriaService,
+    private navController: NavController,
+    private alerta: AlertService,) { }
 
   ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -58,53 +62,53 @@ export class OdontologiaPage implements OnInit {
     this.nombre = this.listaUsuario.nombres.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
 
+
     this.verificarSitieneSeguroMortuorio()
     this.getSeisDias();
     this.getHorariosDiarias();
     this.getCantidadHorarios();
+
   }
 
- ngOnDestroy(): void {
-    this.loaginServices.hide();  // Aquí destruyes el loading cuando el componente se destruye
-  }
+  // ngOnDestroy(): void {
+  //   this.loaginServices.hide();
+  // }
 
   EnviarSolicitud(): void {
-    
-      if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
-        this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
-      } else {
-        this.solicitudCreate.FECHATURNO = this.getFechaTurno();
-        this.solicitudCreate.FECHA = Fechac.fechaActual() + ' ' + Fechac.horaActual();
-        this.solicitudCreate.ESTADO = "Pendiente";
-        this.solicitudCreate.IDSERVICIO = 2;
-        this.solicitudCreate.IDSUCURSAL = 1
-        this.loaginServices.show('Cargando...');
-        this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
-          response => {
-            this.loaginServices.hide();
-            this.solicitudCreate.IDCLIENTE = response.idcliente;
-            this.solicitudCreate.IDPROFESIONAL = 1;
-            this._servicesPeluqueria.createSolicitud(this.solicitudCreate).subscribe(
-              response => {
-                this.enviarNotificacion();
-                this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-                this.navController.back();
-                this.navController.back();
-                this.getSolicitudesAlmacenadas()
-              }, error => {
-                console.log(error);
-              }
-            )
-          }, error => {
-            this.loaginServices.hide();
-            console.log(error);
-          }
-        )
-      }
-    
+
+    if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
+      this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
+    } else {
+      this.solicitudCreate.FECHATURNO = this.getFechaTurno();
+      this.solicitudCreate.FECHA = Fechac.fechaActual() + ' ' + Fechac.horaActual();
+      this.solicitudCreate.ESTADO = "Pendiente";
+      this.solicitudCreate.IDSERVICIO = 2;
+      this.solicitudCreate.IDSUCURSAL = 1
+      this.loaginServices.show('Cargando...');
+      this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
+        response => {
+          this.loaginServices.hide();
+          this.solicitudCreate.IDCLIENTE = response.idcliente;
+          this.solicitudCreate.IDPROFESIONAL = 1;
+          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).subscribe(
+            response => {
+              this.enviarNotificacion();
+              this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+              this.navController.back();
+              this.navController.back();
+              this.getSolicitudesAlmacenadas()
+            }, error => {
+              console.log(error);
+            }
+          )
+        }, error => {
+          this.loaginServices.hide();
+          console.log(error);
+        }
+      )
+    }
+
   }
-
-
 
   enviarNotificacion(): void {
     this.loaginServices.show('Cargando...');
@@ -120,11 +124,12 @@ export class OdontologiaPage implements OnInit {
 
 
   verificarSitieneSeguroMortuorio(): void {
+    this.getSeisDias();
     this.loaginServices.show('Cargando...');
     this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).subscribe(
       response => {
-      
         this.loaginServices.hide();
+
         if (response.response == "SI EXISTE") {
           this.actualizarTipoCuentaTipoSeguro(this.cedula, response.TIPOCUENTA, response.TIPO);
           this.tipo = response.TIPO;
@@ -139,13 +144,14 @@ export class OdontologiaPage implements OnInit {
           this.nombrePersonaConsultada = response.data.NOMBREUNIDO;
           this.VerificarSiExitePersona();
           this.getSolicitudesAlmacenadas();
+
           // this.actualizarEmail();
           //this.actualizarEmail();
         } else {
           this.siTieneSeguroMortuorio = "noexiste"
           this.loaginServices.hide();
         }
-        this.loaginServices.hide();
+
       }, error => {
         this.loaginServices.hide();
         console.log(error);
@@ -157,16 +163,16 @@ export class OdontologiaPage implements OnInit {
 
     this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
       response => {
-        
+
         this.solicitudCreate.IDCLIENTE = response.idcliente;
         if (!response.error) {
           this._servicesPeluqueria.getSolicitudPorCliente(response.idcliente, 2).subscribe(
             response => {
               this.solicitudesAlmacenadas = response.response;
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
-              if(ultimaSolicitud.ESTADO == "Pendiente"){
+              if (ultimaSolicitud.ESTADO == "Pendiente") {
                 this.pendiente = true
-                }
+              }
               if (response.response) {
                 this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
               } else {
@@ -183,7 +189,7 @@ export class OdontologiaPage implements OnInit {
     )
   }
 
- 
+
 
   cancelarSolicitud(idsolicitud: number): void {
     this.loaginServices.show('Cargando...');
@@ -219,6 +225,7 @@ export class OdontologiaPage implements OnInit {
   VerificarSiExitePersona(): void {
     this._servicesPeluqueria.getpersonaPorCedula(this.cedula).subscribe(
       response => {
+
         if (response.error) {
           this.agregarPersonaCliente();
         } else {
@@ -234,13 +241,13 @@ export class OdontologiaPage implements OnInit {
           )
         }
       }, error => {
-      
+
         console.log(error);
       }
     )
   }
 
-  
+
   agregarPersonaCliente(): void {
     this.loaginServices.show('Cargando...');
     this._servicesPeluqueria.createPersona(this.persona).subscribe(
@@ -279,69 +286,83 @@ export class OdontologiaPage implements OnInit {
     )
   }
 
-  getSeisDias(): void {
-    var diaExport = 0; // 11
-    var dias = [];
-    var nombreDelDia = Fechac.generarNombreDia(Fechac.numeroDia());
-    var contador = 0;
-    var mes = "";
-    var anio = "";
-    for (let i = 0; i < 6; i++) {
-      if (nombreDelDia == 'sábado' || nombreDelDia == 'domingo') {
-        if (nombreDelDia == 'sábado') {
-          contador = contador + 2;
-          diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
-          nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
-          mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
-          anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
-        } else {
-          contador = contador + 1;
-          diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
-          nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
-          mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
-          anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
-        }
-      } else {
-        if (dias.length == 0) {
-          if (Fechac.verificarHora() == false) {
-            contador = contador + 1;
+
+
+  getSeisDias(): Promise<void> {
+
+    return new Promise((resolve) => {
+      var diaExport = 0; // 11
+      var dias = [];
+      var nombreDelDia = Fechac.generarNombreDia(Fechac.numeroDia());
+      var contador = 0;
+      var mes = "";
+      var anio = "";
+      for (let i = 0; i < 6; i++) {
+        if (nombreDelDia == 'sábado' || nombreDelDia == 'domingo') {
+          if (nombreDelDia == 'sábado') {
+            contador = contador + 2;
             diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
             nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
             mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
             anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
           } else {
-            contador = contador + 0;
+            contador = contador + 1;
             diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
             nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
             mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
             anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
           }
         } else {
-          if (dias.length > 0) {
-            if (nombreDelDia == 'viernes') {
-              contador = contador + 3;
+          if (dias.length == 0) {
+            if (Fechac.verificarHora() == false) {
+              contador = contador + 1;
+              diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
+              nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
+              mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
+              anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
             } else {
+              contador = contador + 0;
+              diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
+              nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
+              mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
+              anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
+            }
+          } else {
+            if (dias.length > 0) {
+              if (nombreDelDia == 'viernes') {
+                contador = contador + 3;
+              } else {
+                contador = contador + 1;
+              }
+            }
+            diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
+            nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
+            mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
+            anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
+            if (dias.length == 0) {
               contador = contador + 1;
             }
           }
-          diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
-          nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
-          mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
-          anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
-          if (dias.length == 0) {
-            contador = contador + 1;
+        }
+
+        if (nombreDelDia != 'sabado') {
+          if (nombreDelDia != 'domingo') {
+            dias.push({
+              dia: diaExport,
+              nombre: nombreDelDia,
+              mes: mes,
+              anio: anio
+            });
           }
         }
+
       }
-      dias.push({
-        dia: diaExport,
-        nombre: nombreDelDia,
-        mes: mes,
-        anio: anio
-      });
-    }
-    this.diasDisponibles = dias;
+      this.diasDisponibles = dias;
+      setTimeout(() => resolve(), 0);
+    })
   }
+
+
 
   getCantidadHorarios(): void {
     this._servicesPeluqueria.getCount(2).subscribe(
@@ -363,7 +384,7 @@ export class OdontologiaPage implements OnInit {
     )
   }
 
-    back(): void {
+  back(): void {
     this.navController.back();
   }
 

@@ -65,16 +65,16 @@ export class PeluqueriaPage implements OnInit {
     this.cedula = localStorage.getItem('cedula');
     this.nombre = this.listaUsuario.nombres.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
-    this.verificarSitieneSeguroMortuorio()
     this.getSeisDias();
-     this.getCantidadHorarios();
+    this.verificarSitieneSeguroMortuorio()
+    this.getCantidadHorarios();
     this.getHorariosDiarias();
   }
-  
-  ngOnDestroy(): void {
-    this.loaginServices.hide();  
-  }
- 
+
+  // ngOnDestroy(): void {
+  //   this.loaginServices.hide();  
+  // }
+
   EnviarSolicitud(): void {
 
     if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
@@ -287,17 +287,24 @@ export class PeluqueriaPage implements OnInit {
           }
         }
       }
-      dias.push({
-        dia: diaExport,
-        nombre: nombreDelDia,
-        mes: mes,
-        anio: anio
-      });
+
+      if (nombreDelDia != 'sabado') {
+        if (nombreDelDia != 'domingo') {
+          dias.push({
+            dia: diaExport,
+            nombre: nombreDelDia,
+            mes: mes,
+            anio: anio
+          });
+        }
+      }
+
     }
     this.diasDisponibles = dias;
   }
 
   async verificarSitieneSeguroMortuorio() {
+    this.getSeisDias();
     await this.loaginServices.show('Cargando...');
 
     this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).subscribe(
@@ -322,9 +329,9 @@ export class PeluqueriaPage implements OnInit {
 
           // this.actualizarEmail();
         } else {
+          this.siTieneSeguroMortuorio = "noexiste"
           this.loaginServices.hide();
         }
-        this.loaginServices.hide();
       }, async error => {
         this.loaginServices.hide();
         console.log(error);
@@ -335,10 +342,10 @@ export class PeluqueriaPage implements OnInit {
 
 
   async VerificarSiExitePersona() {
-   
+
     this._servicesPeluqueria.getpersonaPorCedula(this.cedula).subscribe(
       async response => {
-       
+
         if (response.error) {
           this.agregarPersonaCliente();
         } else {
@@ -354,7 +361,7 @@ export class PeluqueriaPage implements OnInit {
           )
         }
       }, async error => {
-       
+
         console.log(error);
       }
     )
@@ -374,21 +381,21 @@ export class PeluqueriaPage implements OnInit {
   }
 
   async getSolicitudesAlmacenadas() {
-   
+
     this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
       async response => {
-       
+
         this.solicitudCreate.IDCLIENTE = response.idcliente;
         if (!response.error) {
-         
+
           this._servicesPeluqueria.getSolicitudPorCliente(response.idcliente, 1).subscribe(
             async response => {
-             
+
               this.solicitudesAlmacenadas = response.response;
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
-              if(ultimaSolicitud.ESTADO == "Pendiente"){
+              if (ultimaSolicitud.ESTADO == "Pendiente") {
                 this.pendiente = true
-                }
+              }
 
               if (response.response) {
                 this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
@@ -397,13 +404,13 @@ export class PeluqueriaPage implements OnInit {
               }
 
             }, async error => {
-            
+
               console.log(error);
             }
           )
         }
       }, async error => {
-       
+
         console.log(error);
       }
     )

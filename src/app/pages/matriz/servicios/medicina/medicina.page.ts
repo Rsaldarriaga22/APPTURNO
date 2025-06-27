@@ -41,16 +41,16 @@ export class MedicinaPage implements OnInit {
   public intervalo: any;
   public turnoSeleccionado: string = '';
   public activeBoton: boolean = false;
-  horarioSeleccionado: number | null = null; 
+  horarioSeleccionado: number | null = null;
   public emailPersonaConsultada: string = '';
   public nombrePersonaConsultada: string = '';
   public pendiente: boolean = false;
 
   constructor(
     private loaginServices: LoadingServicesService,
-     private _servicesPeluqueria: PeluqueriaService,
-     private navController: NavController,
-     private alerta: AlertService,
+    private _servicesPeluqueria: PeluqueriaService,
+    private navController: NavController,
+    private alerta: AlertService,
   ) { }
 
   ngOnInit() {
@@ -60,50 +60,47 @@ export class MedicinaPage implements OnInit {
     this.nombre = this.listaUsuario.nombres.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
 
-     this.verificarSitieneSeguroMortuorio()
     this.getSeisDias();
+    this.verificarSitieneSeguroMortuorio()
     this.getHorariosDiarias();
     this.getCantidadHorarios();
   }
 
-  ngOnDestroy(): void {
-    this.loaginServices.hide();  // Aquí destruyes el loading cuando el componente se destruye
-  }
 
   EnviarSolicitud(): void {
-    
-      if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
-        this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
-      } else {
-        this.solicitudCreate.FECHATURNO = this.getFechaTurno();
-        this.solicitudCreate.FECHA = Fechac.fechaActual() + ' ' + Fechac.horaActual();
-        this.solicitudCreate.ESTADO = "Pendiente";
-        this.solicitudCreate.IDSERVICIO = 3;
-        this.solicitudCreate.IDSUCURSAL = 1
-        this.loaginServices.show('Cargando...');
-        this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
-          response => {
-            this.loaginServices.hide();
-            this.solicitudCreate.IDCLIENTE = response.idcliente;
-            this.solicitudCreate.IDPROFESIONAL = 3;
-            this._servicesPeluqueria.createSolicitud(this.solicitudCreate).subscribe(
-              response => {
-                this.enviarNotificacion();
-                this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-                this.navController.back();
-                this.navController.back();
-                this.getSolicitudesAlmacenadas()
-              }, error => {
-                console.log(error);
-              }
-            )
-          }, error => {
-            this.loaginServices.hide();
-            console.log(error);
-          }
-        )
-      }
-    
+
+    if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
+      this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
+    } else {
+      this.solicitudCreate.FECHATURNO = this.getFechaTurno();
+      this.solicitudCreate.FECHA = Fechac.fechaActual() + ' ' + Fechac.horaActual();
+      this.solicitudCreate.ESTADO = "Pendiente";
+      this.solicitudCreate.IDSERVICIO = 3;
+      this.solicitudCreate.IDSUCURSAL = 1
+      this.loaginServices.show('Cargando...');
+      this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
+        response => {
+          this.loaginServices.hide();
+          this.solicitudCreate.IDCLIENTE = response.idcliente;
+          this.solicitudCreate.IDPROFESIONAL = 3;
+          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).subscribe(
+            response => {
+              this.enviarNotificacion();
+              this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+              this.navController.back();
+              this.navController.back();
+              this.getSolicitudesAlmacenadas()
+            }, error => {
+              console.log(error);
+            }
+          )
+        }, error => {
+          this.loaginServices.hide();
+          console.log(error);
+        }
+      )
+    }
+
   }
 
   enviarNotificacion(): void {
@@ -119,12 +116,14 @@ export class MedicinaPage implements OnInit {
   }
 
 
+
   verificarSitieneSeguroMortuorio(): void {
-   this.loaginServices.show('Cargando...');
+    this.getSeisDias();
+    this.loaginServices.show('Cargando...');
     this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).subscribe(
-     async response => {
-      
+      response => {
         this.loaginServices.hide();
+
         if (response.response == "SI EXISTE") {
           this.actualizarTipoCuentaTipoSeguro(this.cedula, response.TIPOCUENTA, response.TIPO);
           this.tipo = response.TIPO;
@@ -137,16 +136,16 @@ export class MedicinaPage implements OnInit {
           this.siTieneSeguroMortuorio = "existe";
           this.emailPersonaConsultada = response.data.email;
           this.nombrePersonaConsultada = response.data.NOMBREUNIDO;
-            this.VerificarSiExitePersona();
-            this.getSolicitudesAlmacenadas();
-        
+          this.VerificarSiExitePersona();
+          this.getSolicitudesAlmacenadas();
+
         } else {
           this.siTieneSeguroMortuorio = "noexiste"
-          await this.loaginServices.hide();
+          this.loaginServices.hide();
         }
-       await this.loaginServices.hide();
-      }, async error => {
-        await this.loaginServices.hide();
+
+      }, error => {
+        this.loaginServices.hide();
         console.log(error);
       }
     )
@@ -154,7 +153,7 @@ export class MedicinaPage implements OnInit {
 
   getSolicitudesAlmacenadas() {
     this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
-    async  response => {
+      async response => {
         this.solicitudCreate.IDCLIENTE = response.idcliente;
         if (!response.error) {
           this._servicesPeluqueria.getSolicitudPorCliente(response.idcliente, 3).subscribe(
@@ -162,10 +161,10 @@ export class MedicinaPage implements OnInit {
               this.solicitudesAlmacenadas = response.response;
               // Acceder al último objeto en el arreglo
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
-              if(ultimaSolicitud.ESTADO == "Pendiente"){
+              if (ultimaSolicitud.ESTADO == "Pendiente") {
                 console.log('datoss', ultimaSolicitud.ESTADO);
                 this.pendiente = true
-                }
+              }
               if (response.response) {
                 this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
               } else {
@@ -177,11 +176,11 @@ export class MedicinaPage implements OnInit {
           )
         }
       }, async error => {
-      
-       console.log(error);
+
+        console.log(error);
       }
     )
-    
+
   }
 
   cancelarSolicitud(idsolicitud: number): void {
@@ -201,11 +200,11 @@ export class MedicinaPage implements OnInit {
 
   getUltimaSolicitudEnviada(idcliente: number): void {
     this._servicesPeluqueria.getUltimaSolicitudPorCliente(idcliente, 3).subscribe(
-     async response => {
-       if (response.response) {
-         this.ultimasolicitudesAlmacenadas = response.response;
-         var diaDIferencia = Fechac.restarFechas(this.ultimasolicitudesAlmacenadas.FECHATURNO, Fechac.fechaActual())
-         this.cantidadNumeroDiaUltimaSolicitud = diaDIferencia;
+      async response => {
+        if (response.response) {
+          this.ultimasolicitudesAlmacenadas = response.response;
+          var diaDIferencia = Fechac.restarFechas(this.ultimasolicitudesAlmacenadas.FECHATURNO, Fechac.fechaActual())
+          this.cantidadNumeroDiaUltimaSolicitud = diaDIferencia;
         } else {
           this.cantidadNumeroDiaUltimaSolicitud = 8;
         }
@@ -216,10 +215,10 @@ export class MedicinaPage implements OnInit {
   }
 
   VerificarSiExitePersona(): void {
-   
+
     this._servicesPeluqueria.getpersonaPorCedula(this.cedula).subscribe(
       response => {
-       
+
         if (response.error) {
           this.agregarPersonaCliente();
         } else {
@@ -240,15 +239,15 @@ export class MedicinaPage implements OnInit {
     )
   }
 
-  
+
   agregarPersonaCliente(): void {
-   
+
     this._servicesPeluqueria.createPersona(this.persona).subscribe(
       response => {
-       
+
         this.agregarCliente(response.idpersona);
       }, error => {
-       
+
         console.log(error);
       }
     )
@@ -279,98 +278,101 @@ export class MedicinaPage implements OnInit {
     )
   }
 
-  getSeisDias(): void {
-    var diaExport = 0; // 11
-    var dias = [];
-    var nombreDelDia = Fechac.generarNombreDia(Fechac.numeroDia());
-    var contador = 0;
-    var mes = "";
-    var anio = "";
-    for (let i = 0; i < 6; i++) {
-      if (nombreDelDia == 'sábado' || nombreDelDia == 'domingo') {
-        if (nombreDelDia == 'sábado') {
-          contador = contador + 2;
-          diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
-          nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
-          mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
-          anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
-        } else {
-          contador = contador + 1;
-          diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
-          nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
-          mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
-          anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
-        }
-      } else {
-        if (dias.length == 0) {
-          if (Fechac.verificarHora() == false) {
-            contador = contador + 1;
+  getSeisDias(): Promise<void> {
+
+    return new Promise((resolve) => {
+      var diaExport = 0; // 11
+      var dias = [];
+      var nombreDelDia = Fechac.generarNombreDia(Fechac.numeroDia());
+      var contador = 0;
+      var mes = "";
+      var anio = "";
+      for (let i = 0; i < 6; i++) {
+        if (nombreDelDia == 'sábado' || nombreDelDia == 'domingo') {
+          if (nombreDelDia == 'sábado') {
+            contador = contador + 2;
             diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
             nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
             mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
             anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
           } else {
-            contador = contador + 0;
+            contador = contador + 1;
             diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
             nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
             mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
             anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
           }
         } else {
-          if (dias.length > 0) {
-            if (nombreDelDia == 'viernes') {
-              contador = contador + 3;
+          if (dias.length == 0) {
+            if (Fechac.verificarHora() == false) {
+              contador = contador + 1;
+              diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
+              nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
+              mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
+              anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
             } else {
+              contador = contador + 0;
+              diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
+              nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
+              mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
+              anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
+            }
+          } else {
+            if (dias.length > 0) {
+              if (nombreDelDia == 'viernes') {
+                contador = contador + 3;
+              } else {
+                contador = contador + 1;
+              }
+            }
+            diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
+            nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
+            mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
+            anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
+            if (dias.length == 0) {
               contador = contador + 1;
             }
           }
-          diaExport = +Fechac.obtenerDiaDelMesMaIncremento(contador)[0];
-          nombreDelDia = Fechac.obtenerDiaDelMesMaIncremento(contador)[1];
-          mes = Fechac.obtenerDiaDelMesMaIncremento(contador)[2];
-          anio = Fechac.obtenerDiaDelMesMaIncremento(contador)[3];
-          if (dias.length == 0) {
-            contador = contador + 1;
+        }
+        if (nombreDelDia != 'sabado') {
+          if (nombreDelDia != 'domingo') {
+            dias.push({
+              dia: diaExport,
+              nombre: nombreDelDia,
+              mes: mes,
+              anio: anio
+            });
           }
         }
+
+
       }
-      dias.push({
-        dia: diaExport,
-        nombre: nombreDelDia,
-        mes: mes,
-        anio: anio
-      });
-    }
-    this.diasDisponibles = dias;
+      this.diasDisponibles = dias;
+      setTimeout(() => resolve(), 0);
+    })
   }
 
   getCantidadHorarios(): void {
-    // this.loaginServices.show('Cargando...');
     this._servicesPeluqueria.getCount(3).subscribe(
       response => {
-        this.loaginServices.hide();
         this.cantidadTurnosAlDia = response.response.COUNT;
       }, error => {
-        this.loaginServices.hide();
         console.log(error);
       }
     )
-    this.loaginServices.hide();
   }
 
   getHorariosDiarias(): void {
-    // this.loaginServices.show('Cargando...');
     this._servicesPeluqueria.getall(3).subscribe(
       response => {
-        this.loaginServices.hide();
         this.horariosAll = response.response;
       }, error => {
-        this.loaginServices.hide();
         console.log(error);
       }
     )
   }
 
-    back(): void {
+  back(): void {
     this.navController.back();
   }
 

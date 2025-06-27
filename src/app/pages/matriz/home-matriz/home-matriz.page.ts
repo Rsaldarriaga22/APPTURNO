@@ -37,28 +37,32 @@ export class HomeMatrizPage implements OnInit {
     }
   }
 
+  // 0500008586
   async buscar() {
      this.loaginServices.show()
+
      const vaCedula = this.validadorCedula.validadorDeCedula(this.inputValue)
+     console.log(vaCedula)
      if (vaCedula) {
        
        this.userServices.verificar(this.inputValue).subscribe(
          async (resp) => {
-          this.loaginServices.hide()
-          if (resp.response) {
-            localStorage.setItem('cedula', this.inputValue);
-            const usuarioString = JSON.stringify(resp.response);
-            localStorage.setItem('usuario', usuarioString);
-            this._router.navigate(['/socio']);
-            this.inputValue = ''
-          } else {
-            this.loaginServices.hide()
-            localStorage.setItem('cedula', this.inputValue);
-            this._router.navigate(['/cliente']);
-            this.inputValue = ''
-          }
-        },
-        async (error) => {
+           this.loaginServices.hide()
+           if (resp.response) {
+             localStorage.setItem('cedula', this.inputValue);
+             const usuarioString = JSON.stringify(resp.response);
+             localStorage.setItem('usuario', usuarioString);
+             this._router.navigate(['/socio']);
+             this.inputValue = ''
+            } else {
+              this.loaginServices.hide()
+              localStorage.setItem('cedula', this.inputValue);
+              this._router.navigate(['/cliente']);
+              this.inputValue = ''
+            }
+          },
+          async (error) => {
+          console.log('mi id', error)
           this.loaginServices.hide()
         }
       );

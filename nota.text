@@ -12,3 +12,6 @@ ionic capacitor build android --prod
 rootProject.ext.minSdkVersion
 
 
+ionic build --prod
+npx cap sync android
+ npx cap open android

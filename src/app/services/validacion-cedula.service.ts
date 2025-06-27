@@ -5,35 +5,69 @@ import { Injectable } from '@angular/core';
 })
 export class ValidacionCedulaService {
 
-  validadorDeCedula(cedula: String): boolean {
+
+  
+
+
+ 
+  
+  validadorDeCedula(cedula: string): boolean {
     let cedulaCorrecta = false;
-    if (cedula.length == 10) {
+    // Asegurar que tenga exactamente 10 dígitos (rellena con ceros si hace falta)
+    cedula = cedula.trim().padStart(10, '0');
+    if (cedula.length === 10) {
       let tercerDigito = parseInt(cedula.substring(2, 3));
-      if (tercerDigito < 6) {
+      
+      if (tercerDigito <= 6) {
         let coefValCedula = [2, 1, 2, 1, 2, 1, 2, 1, 2];
         let verificador = parseInt(cedula.substring(9, 10));
         let suma: number = 0;
-        let digito: number = 0;
-        for (let i = 0; i < (cedula.length - 1); i++) {
-          digito = parseInt(cedula.substring(i, i + 1)) * coefValCedula[i];
-          suma += ((parseInt((digito % 10) + '') + (parseInt((digito / 10) + ''))));
+        for (let i = 0; i < 9; i++) {
+          let digito = parseInt(cedula.substring(i, i + 1)) * coefValCedula[i];
+          suma += (digito % 10) + Math.floor(digito / 10);
         }
-        suma = Math.round(suma);
-        if ((Math.round(suma % 10) == 0) && (Math.round(suma % 10) == verificador)) {
+        let residuo = suma % 10;
+        let resultado = residuo === 0 ? 0 : 10 - residuo;
+        if (resultado === verificador) {
           cedulaCorrecta = true;
-        } else if ((10 - (Math.round(suma % 10))) == verificador) {
-          cedulaCorrecta = true;
-        } else {
-          cedulaCorrecta = false;
         }
-      } else {
-        cedulaCorrecta = false;
       }
-    } else {
-      cedulaCorrecta = false;
     }
+  
     return cedulaCorrecta;
   }
+    
+  
+  //  validadorDeCedula(cedula: string): boolean {
+  //   let cedulaCorrecta = false;
+  //    if (cedula.length == 10) {
+  //     let tercerDigito = parseInt(cedula.substring(2, 3));
+  //     if (tercerDigito < 6) {
+  //       let coefValCedula = [2, 1, 2, 1, 2, 1, 2, 1, 2];
+  //       let verificador = parseInt(cedula.substring(9, 10));
+  //       let suma: number = 0;
+  //       let digito: number = 0;
+  //       console.log(tercerDigito)
+  //       for (let i = 0; i < (cedula.length - 1); i++) {
+  //         digito = parseInt(cedula.substring(i, i + 1)) * coefValCedula[i];
+  //         suma += ((parseInt((digito % 10) + '') + (parseInt((digito / 10) + ''))));
+  //       }
+  //       suma = Math.round(suma);
+  //       if ((Math.round(suma % 10) == 0) && (Math.round(suma % 10) == verificador)) {
+  //         cedulaCorrecta = true;
+  //       } else if ((10 - (Math.round(suma % 10))) == verificador) {
+  //         cedulaCorrecta = true;
+  //       } else {
+  //         cedulaCorrecta = false;
+  //       }
+  //     } else {
+  //       cedulaCorrecta = false;
+  //     }
+  //   } else {
+  //     cedulaCorrecta = false;
+  //   }
+  //   return cedulaCorrecta;
+  // }
 
   validarRuc(ruc: string): boolean {
     const noTieneTreceDigitos = ruc.length !== 13;
