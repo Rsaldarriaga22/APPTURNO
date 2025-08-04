@@ -47,6 +47,8 @@ export class UsuariosService {
     let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
     return this._http.get<ApiCorreo>(datos)
   }
+
+
   verificarCliente(cedula: any): Observable<any> {
     let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
     return this._http.get<ApiCorreo>(datos)

@@ -82,40 +82,50 @@ export class SocioPage implements OnInit {
 
 
     } else {
-      await this.loaginServices.show('Cargando...');
-      this.subscription.add(
-        this.userServices.getCodigo().subscribe(resp => {
-          this.codigoId = resp.data.cid
-          const usuario = {
-            tcedula: this.cedula,
-            tnombres: this.listaUsuario.nombres,
-            tapellidos: this.listaUsuario.apellidos,
-            tcorreo: this.listaUsuario.email,
-            idarea: card.aid.toString(),
-            idagencia: card.agid.toString(),
-            idcodigo: this.codigoId,
-            usocio: 'Si'
-          };
-          this.userServices.crearTurno(usuario).subscribe(async response => {
-            if (response.success) {
-              const area = response.data.AreaNombre.normalize("NFD") // Descompone caracteres acentuados
-                .replace(/[\u0300-\u036f]/g, "") // Elimina los diacríticos (tildes)
-                .toUpperCase();
-              this.handleDocumento(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
-              this.loaginServices.hide();
-              this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-              this.back()
-            }
-          }, async error => {
-            console.log(error)
-            this.loaginServices.hide();
-            this.alerta.presentModal('¡Atención!', error.error.error, 'alert-circle-outline', 'warning');
-          });
+      
+        await this.loaginServices.show('Cargando...');
+        this.subscription.add(
+          this.userServices.getCodigo().subscribe(resp => {
+            this.codigoId = resp.data.cid
+            const usuario = {
+              tcedula: this.cedula,
+              tnombres: this.listaUsuario.nombres,
+              tapellidos: this.listaUsuario.apellidos,
+              tcorreo: this.listaUsuario.email,
+              idarea: card.aid.toString(),
+              idagencia: card.agid.toString(),
+              idcodigo: this.codigoId,
+              usocio: 'Si'
+            };
 
-        })
-      )
+            this.userServices.crearTurno(usuario).subscribe(async response => {
+              if (response.success) {
+                const area = response.data.AreaNombre.normalize("NFD") // Descompone caracteres acentuados
+                  .replace(/[\u0300-\u036f]/g, "") // Elimina los diacríticos (tildes)
+                  .toUpperCase();
+                this.handleDocumento(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
+                this.loaginServices.hide();
+                this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+                this.back()
+              }
+            }, async error => {
+              console.log(error)
+              this.loaginServices.hide();
+              this.alerta.presentModal('¡Atención!', error.error.error, 'alert-circle-outline', 'warning');
+            });
+
+          })
+        )
     }
   }
+
+  // this.handleDocumento('SC', '25', 'Servicio al Cliente', this.formatDate())
+//  formatDate(dateString?: string): string {
+//   const date = dateString ? moment.utc(dateString, moment.ISO_8601, true) : moment.utc();
+//   return date.isValid() ? date.format('YYYY-MM-DD HH:mm') : '';
+// }
+
+
 
   formatDate(dateString: string): string {
     return moment.utc(dateString).format('YYYY-MM-DD HH:mm');
@@ -141,9 +151,7 @@ export class SocioPage implements OnInit {
   async handlePrintRecibo(deviceId: string, serviceUuid: string, characteristicUuid: string, alia: string, turno: string, area: string, fecha: string) {
     if (deviceId && serviceUuid && characteristicUuid) {
       try {
-
         await this.bluetoothOperationsService.Connect(deviceId);
-
         // Imprimir el Logo
         await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
@@ -161,14 +169,15 @@ export class SocioPage implements OnInit {
         await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
 
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 2, 2);
+        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
         await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${alia}${turno}`);
         await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
 
 
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE ${area}`);
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE`);
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${area}`);
         await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
         await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, fecha);
 
@@ -176,7 +185,8 @@ export class SocioPage implements OnInit {
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, '¡Agradecemos tu confianza!');
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy pronto.');
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy');
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'pronto.');
 
         // Saltos de linea
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);

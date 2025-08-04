@@ -17,7 +17,7 @@ export class BluetoothService implements OnDestroy {
       this.toastService.presentToast('Bluetooth inicializado', 2000, 'bottom', 'success');
     } catch (error) {
       console.error('Error al inicializar el Bluetooth:', error);
-      this.toastService.presentToast('Error al inicializar el Bluetoothrrrrrrrr', 2000, 'bottom', 'danger');
+      this.toastService.presentToast('Error al inicializar el Bluetooth', 2000, 'bottom', 'danger');
       throw error;
     }
   }

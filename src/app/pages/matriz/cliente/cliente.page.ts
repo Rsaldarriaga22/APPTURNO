@@ -59,7 +59,6 @@ export class ClientePage implements OnInit {
   }
 
   async onCardClick(card: any) {
-
      await this.loaginServices.show();
      this.subscription.add(
        this.userServices.getCodigo().subscribe(resp => {
@@ -105,12 +104,10 @@ export class ClientePage implements OnInit {
     this.handlePrintRecibo(deviceId, serviceUuid, characteristicUuid, alias, turno, area, fecha)
   }
 
-  async handlePrintRecibo(deviceId: string, serviceUuid: string, characteristicUuid: string, alia: string, turno: string, area: string, fecha: string) {
+   async handlePrintRecibo(deviceId: string, serviceUuid: string, characteristicUuid: string, alia: string, turno: string, area: string, fecha: string) {
     if (deviceId && serviceUuid && characteristicUuid) {
       try {
-
         await this.bluetoothOperationsService.Connect(deviceId);
-
         // Imprimir el Logo
         await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
@@ -128,14 +125,15 @@ export class ClientePage implements OnInit {
         await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
 
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 2, 2);
+        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
         await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${alia}${turno}`);
         await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
 
 
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE ${area}`);
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE`);
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${area}`);
         await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
         await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, fecha);
 
@@ -143,7 +141,8 @@ export class ClientePage implements OnInit {
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
         await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, '¡Agradecemos tu confianza!');
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy pronto.');
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy');
+        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'pronto.');
 
         // Saltos de linea
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
