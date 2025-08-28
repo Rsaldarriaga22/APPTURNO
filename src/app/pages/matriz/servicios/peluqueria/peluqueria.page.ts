@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { finalize } from 'rxjs';
 import { Cliente } from 'src/app/models/Cliente';
 import { Fechac } from 'src/app/models/fechaHora';
 import { Horario } from 'src/app/models/Horario';
@@ -8,6 +9,7 @@ import { Persona } from 'src/app/models/Persona';
 import { Solicitud } from 'src/app/models/Solicitud';
 import { Sucursal } from 'src/app/models/Sucursales';
 import { AlertService } from 'src/app/services/alert.service';
+import { ImpresoraService } from 'src/app/services/impresora.service';
 import { LoadingServicesService } from 'src/app/services/loading-services.service';
 import { PeluqueriaService } from 'src/app/services/peluqueria.service';
 
@@ -18,6 +20,13 @@ import { PeluqueriaService } from 'src/app/services/peluqueria.service';
   standalone: false,
 })
 export class PeluqueriaPage implements OnInit {
+  private _servicesImpresora = inject(ImpresoraService)
+  private spinner = inject(NgxSpinnerService)
+  private alerta = inject(AlertService)
+  private loaginServices = inject(LoadingServicesService)
+  private _servicesPeluqueria = inject(PeluqueriaService)
+  private navController = inject(NavController)
+
 
   nombre: any;
   apellido: any;
@@ -47,17 +56,8 @@ export class PeluqueriaPage implements OnInit {
   public emailPersonaConsultada: string = '';
   public cantidadNumeroDiaUltimaSolicitud: number = 15;
   public pendiente: boolean = false;
-  constructor(
-    private spinner: NgxSpinnerService,
-    private alerta: AlertService,
-    private loaginServices: LoadingServicesService,
-    private _servicesPeluqueria: PeluqueriaService,
-    private navController: NavController,
-  ) { }
 
   horarioSeleccionado: number | null = null; // Guarda el ID del horario seleccionado
-
-
 
   async ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -71,10 +71,7 @@ export class PeluqueriaPage implements OnInit {
     this.getHorariosDiarias();
   }
 
-  // ngOnDestroy(): void {
-  //   this.loaginServices.hide();  
-  // }
-
+  
   EnviarSolicitud(): void {
 
     if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
@@ -86,29 +83,29 @@ export class PeluqueriaPage implements OnInit {
       this.solicitudCreate.ESTADO = "Pendiente";
       this.solicitudCreate.IDSERVICIO = 1;
       this.solicitudCreate.IDSUCURSAL = 1;
+
       this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
         response => {
-          this.loaginServices.hide();
-          this.solicitudCreate.IDCLIENTE = response.idcliente;
-          this.solicitudCreate.IDPROFESIONAL = 2;
-          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).subscribe(
+           this.loaginServices.hide();
+           this.solicitudCreate.IDCLIENTE = response.idcliente;
+           this.solicitudCreate.IDPROFESIONAL = 2;
+
+          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(finalize(()=> this.loaginServices.hide())).subscribe(
             response => {
-              this.loaginServices.hide();
+              this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'PELUQUERIA')
               this.enviarNotificacion()
               this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
               this.navController.back();
               this.navController.back();
               this.getSolicitudesAlmacenadas()
-            }, error => {
-              console.log(error);
             }
           )
         }, error => {
           this.loaginServices.hide();
           console.log(error);
-        }
-      )
     }
+       )
+     }
 
   }
 
@@ -132,6 +129,9 @@ export class PeluqueriaPage implements OnInit {
     this.activeBoton = true;
     this.solicitudCreate.IDHORARIO = idhorario;
     this.horarioSeleccionado = idhorario;
+
+
+
   }
 
   getHorariosDiarias(): void {

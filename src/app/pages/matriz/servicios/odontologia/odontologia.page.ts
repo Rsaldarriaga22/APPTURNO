@@ -7,6 +7,7 @@ import { Horario } from 'src/app/models/Horario';
 import { Persona } from 'src/app/models/Persona';
 import { Solicitud } from 'src/app/models/Solicitud';
 import { AlertService } from 'src/app/services/alert.service';
+import { ImpresoraService } from 'src/app/services/impresora.service';
 import { LoadingServicesService } from 'src/app/services/loading-services.service';
 import { PeluqueriaService } from 'src/app/services/peluqueria.service';
 
@@ -18,6 +19,7 @@ import { PeluqueriaService } from 'src/app/services/peluqueria.service';
 })
 export class OdontologiaPage implements OnInit {
   private cdr = inject(ChangeDetectorRef)
+  private _servicesImpresora = inject(ImpresoraService)
   nombre: any;
   apellido: any;
   listaUsuario: any = {}
@@ -85,20 +87,22 @@ export class OdontologiaPage implements OnInit {
       this.solicitudCreate.IDSERVICIO = 2;
       this.solicitudCreate.IDSUCURSAL = 1
       this.loaginServices.show('Cargando...');
+    
       this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
         response => {
-          this.loaginServices.hide();
+          
           this.solicitudCreate.IDCLIENTE = response.idcliente;
           this.solicitudCreate.IDPROFESIONAL = 1;
-          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).subscribe(
+          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(
+            finalize(()=>this.loaginServices.hide())
+          ).subscribe(
             response => {
+               this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'ODONTOLOGIA')
               this.enviarNotificacion();
               this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
               this.navController.back();
               this.navController.back();
               this.getSolicitudesAlmacenadas()
-            }, error => {
-              console.log(error);
             }
           )
         }, error => {

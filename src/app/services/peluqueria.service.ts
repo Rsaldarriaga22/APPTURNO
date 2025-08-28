@@ -96,8 +96,7 @@ export class PeluqueriaService {
     getCount(idservicio: number): Observable<any> {
       //  this.loaginServices.loadingTrue();
        return this._http.get(this.urlGo + 'horarios-count/' + idservicio)
-      
-      
+    
     }
     deleteSolicitud(idsolicitud: number): Observable<any> {
       let headers = new HttpHeaders().set('Content-Type', 'application/json');
