@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { catchError, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { Cliente } from 'src/app/models/Cliente';
 import { Fechac } from 'src/app/models/fechaHora';
 import { Horario } from 'src/app/models/Horario';
@@ -8,8 +8,8 @@ import { Persona } from 'src/app/models/Persona';
 import { Solicitud } from 'src/app/models/Solicitud';
 import { AlertService } from 'src/app/services/alert.service';
 import { ImpresoraService } from 'src/app/services/impresora.service';
-import { LoadingServicesService } from 'src/app/services/loading-services.service';
 import { PeluqueriaService } from 'src/app/services/peluqueria.service';
+import { SpinnerNewService } from 'src/app/util/spinner-new/spinner-new.service';
 
 @Component({
   selector: 'app-odontologia',
@@ -18,8 +18,12 @@ import { PeluqueriaService } from 'src/app/services/peluqueria.service';
   standalone: false,
 })
 export class OdontologiaPage implements OnInit {
-  private cdr = inject(ChangeDetectorRef)
   private _servicesImpresora = inject(ImpresoraService)
+  private _spinner = inject(SpinnerNewService)
+  private _servicesPeluqueria = inject(PeluqueriaService)
+  private navController = inject(NavController)
+  private alerta = inject(AlertService)
+
   nombre: any;
   apellido: any;
   listaUsuario: any = {}
@@ -49,13 +53,11 @@ export class OdontologiaPage implements OnInit {
   public emailPersonaConsultada: string = '';
   public nombrePersonaConsultada: string = '';
   public pendiente: boolean = false;
-
   mostraCard: boolean = false;
 
-  constructor(private loaginServices: LoadingServicesService,
-    private _servicesPeluqueria: PeluqueriaService,
-    private navController: NavController,
-    private alerta: AlertService,) { }
+  activeButtom: boolean = true;
+  public ultimoTurno: any;
+  public diasAExcluir: number[] = [];
 
   ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -63,21 +65,38 @@ export class OdontologiaPage implements OnInit {
     this.cedula = localStorage.getItem('cedula');
     this.nombre = this.listaUsuario.nombres.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
-
-
-    this.verificarSitieneSeguroMortuorio()
-    this.getSeisDias();
-    this.getHorariosDiarias();
-    this.getCantidadHorarios();
-
+    this.suspendirDias()
   }
 
-  // ngOnDestroy(): void {
-  //   this.loaginServices.hide();
-  // }
+  controlar5Minutos(fecha: string) {
+    const horaBaseStr = fecha;
+    const horaBase = new Date(horaBaseStr.replace(' ', 'T'));
+    const horaLimite = new Date(horaBase.getTime() + 5 * 60 * 1000);
+    this.intervalo = setInterval(() => {
+      const ahora = new Date();
+      if (ahora >= horaLimite) {
+        this.activeButtom = false
+        clearInterval(this.intervalo);
+      } else {
+        this.activeButtom = true
+      }
+    }, 300)
+  }
+  
+  // Convierte  en un objeto Date del día actual
+  convertirHora(horaStr: string): Date {
+    const [time, meridiem] = horaStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+
+    if (meridiem.toLowerCase() === 'pm' && hours < 12) hours += 12;
+    if (meridiem.toLowerCase() === 'am' && hours === 12) hours = 0;
+
+    const fecha = new Date();
+    fecha.setHours(hours, minutes, 0, 0);
+    return fecha;
+  }
 
   EnviarSolicitud(): void {
-
     if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
       this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
     } else {
@@ -86,54 +105,41 @@ export class OdontologiaPage implements OnInit {
       this.solicitudCreate.ESTADO = "Pendiente";
       this.solicitudCreate.IDSERVICIO = 2;
       this.solicitudCreate.IDSUCURSAL = 1
-      this.loaginServices.show('Cargando...');
-    
+      this._spinner.show();
       this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
         response => {
-          
           this.solicitudCreate.IDCLIENTE = response.idcliente;
           this.solicitudCreate.IDPROFESIONAL = 1;
           this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(
-            finalize(()=>this.loaginServices.hide())
-          ).subscribe(
-            response => {
-               this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'ODONTOLOGIA')
-              this.enviarNotificacion();
-              this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-              this.navController.back();
-              this.navController.back();
-              this.getSolicitudesAlmacenadas()
-            }
+            finalize(() => this._spinner.hide())
+          ).subscribe(() => {
+            this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'ODONTOLOGIA')
+            this.enviarNotificacion();
+            this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+            this.navController.back();
+            this.navController.back();
+            this.getSolicitudesAlmacenadas()
+          }
           )
         }, error => {
-          this.loaginServices.hide();
+          this._spinner.hide();
           console.log(error);
         }
       )
     }
-
   }
 
   enviarNotificacion(): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Medicina General', this.nombrePersonaConsultada).subscribe(
-      response => {
-        this.loaginServices.hide();
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
-      }
-    )
+    this._spinner.show();
+    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Medicina General', this.nombrePersonaConsultada).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe()
   }
-
 
   verificarSitieneSeguroMortuorio(): void {
     this.getSeisDias();
-    this.loaginServices.show('Cargando...');
     this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).subscribe(
       response => {
-        this.loaginServices.hide();
-
         if (response.response == "SI EXISTE") {
           this.actualizarTipoCuentaTipoSeguro(this.cedula, response.TIPOCUENTA, response.TIPO);
           this.tipo = response.TIPO;
@@ -153,35 +159,33 @@ export class OdontologiaPage implements OnInit {
           //this.actualizarEmail();
         } else {
           this.siTieneSeguroMortuorio = "noexiste"
-          this.loaginServices.hide();
+          this._spinner.hide();
         }
-
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
       }
     )
   }
 
   getSolicitudesAlmacenadas(): void {
-
     this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
       response => {
-
         this.solicitudCreate.IDCLIENTE = response.idcliente;
         if (!response.error) {
           this._servicesPeluqueria.getSolicitudPorCliente(response.idcliente, 2).subscribe(
             response => {
               this.solicitudesAlmacenadas = response.response;
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
+              this.ultimoTurno = ultimaSolicitud
+              this.controlar5Minutos(ultimaSolicitud.FECHA)
               if (ultimaSolicitud.ESTADO == "Pendiente") {
                 this.pendiente = true
               }
+
               if (response.response) {
                 this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
               } else {
                 this.cantidadNumeroDiaUltimaSolicitud = 8;
               }
+
             }, error => {
               console.log(error);
             }
@@ -193,20 +197,15 @@ export class OdontologiaPage implements OnInit {
     )
   }
 
-
-
   cancelarSolicitud(idsolicitud: number): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.deleteSolicitud(idsolicitud).subscribe(
-      response => {
-        this.loaginServices.hide()
-        this.alerta.presentModal('¡Excelente!', 'Solicitud cancelada con exito!!', 'checkmark-circle-outline', 'success');
-        this.navController.back();
-        this.getSolicitudesAlmacenadas();
-      }, error => {
-        this.loaginServices.hide()
-        console.log(error);
-      }
+    this._spinner.show();
+    this._servicesPeluqueria.deleteSolicitud(idsolicitud).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe(() => {
+      this.alerta.presentModal('¡Excelente!', 'Solicitud cancelada con exito!!', 'checkmark-circle-outline', 'success');
+      this.navController.back();
+      this.getSolicitudesAlmacenadas();
+    }
     )
   }
 
@@ -229,7 +228,6 @@ export class OdontologiaPage implements OnInit {
   VerificarSiExitePersona(): void {
     this._servicesPeluqueria.getpersonaPorCedula(this.cedula).subscribe(
       response => {
-
         if (response.error) {
           this.agregarPersonaCliente();
         } else {
@@ -245,41 +243,30 @@ export class OdontologiaPage implements OnInit {
           )
         }
       }, error => {
-
         console.log(error);
       }
     )
   }
-
 
   agregarPersonaCliente(): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.createPersona(this.persona).subscribe(
+    this._spinner.show();
+    this._servicesPeluqueria.createPersona(this.persona).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe(
       response => {
-        this.loaginServices.hide();
         this.agregarCliente(response.idpersona);
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
       }
     )
   }
-
 
   agregarCliente(idpersona: number): void {
     this.cliente.IDPERSONA = idpersona;
     this.cliente.ULTIMAFECHASOLICUTDUD = new Date();
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.createCliente(this.cliente).subscribe(
-      response => {
-        this.loaginServices.hide();
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
-      }
-    )
+    this._spinner.show();
+    this._servicesPeluqueria.createCliente(this.cliente).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe()
   }
-
 
   actualizarTipoCuentaTipoSeguro(identificacion: string, tipocuenta: string, tiposeguro: string): void {
     this._servicesPeluqueria.actualizarTipocuentaTipoSeguro(identificacion, tipocuenta, tiposeguro).subscribe(
@@ -290,10 +277,7 @@ export class OdontologiaPage implements OnInit {
     )
   }
 
-
-
   getSeisDias(): Promise<void> {
-
     return new Promise((resolve) => {
       var diaExport = 0; // 11
       var dias = [];
@@ -348,7 +332,6 @@ export class OdontologiaPage implements OnInit {
             }
           }
         }
-
         if (nombreDelDia != 'sabado') {
           if (nombreDelDia != 'domingo') {
             dias.push({
@@ -359,17 +342,37 @@ export class OdontologiaPage implements OnInit {
             });
           }
         }
-
       }
+
+      // suspender dias no laborables
+      if (this.diasAExcluir && this.diasAExcluir.length > 0) {
+        dias = dias.filter(d => !this.diasAExcluir.includes(d.dia));
+      }
+
       this.diasDisponibles = dias;
       setTimeout(() => resolve(), 0);
+    })
+  }
+
+  suspendirDias() {
+    this._spinner.show()
+    this._servicesPeluqueria.suspenderDias(2).subscribe({
+      next: (res) => {
+        this.diasAExcluir = res.data
+        this.getSeisDias();
+        this.verificarSitieneSeguroMortuorio()
+        this.getHorariosDiarias();
+        this.getCantidadHorarios();
+      }
     })
   }
 
 
 
   getCantidadHorarios(): void {
-    this._servicesPeluqueria.getCount(2).subscribe(
+    this._servicesPeluqueria.getCount(2).pipe(
+      finalize(()=>this._spinner.hide())
+    ).subscribe(
       response => {
         this.cantidadTurnosAlDia = response.response.COUNT;
       }, error => {
@@ -418,9 +421,7 @@ export class OdontologiaPage implements OnInit {
       }, 3000);
     } else {
       this.selectedDayIndex = index;
-
       this.fechaSeleccionada = `${dia.dia}#${dia.nombre}#${dia.mes}#${dia.anio}`;
-
       this.turnoSeleccionadoShow = false;
       clearInterval(this.intervalo)
       this.turnosShow = true;
@@ -493,7 +494,6 @@ export class OdontologiaPage implements OnInit {
     }
     return respuesta;
   }
-
 
   getFechaTurno(): string {
     var partes = this.fechaSeleccionada.split("#");

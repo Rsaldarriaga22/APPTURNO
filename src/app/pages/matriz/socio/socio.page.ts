@@ -1,16 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
-import { LOCAL_STORAGE_KEY } from 'src/app/api/url';
+import { finalize, Subscription } from 'rxjs';
 import { AlertService } from 'src/app/services/alert.service';
-import { AlertServiceB } from 'src/app/services/bluetooth/alertB.service';
-import { BluetoothService } from 'src/app/services/bluetooth/bluetooth.service';
 import { UsuariosService } from 'src/app/services/usuarios.service';
 import * as moment from 'moment';
 import { Router } from '@angular/router';
-import { LoadingServicesService } from 'src/app/services/loading-services.service';
 import { ImpresoraService } from 'src/app/services/impresora.service';
+import { SpinnerNewService } from 'src/app/util/spinner-new/spinner-new.service';
 
 @Component({
   selector: 'app-socio',
@@ -21,11 +18,11 @@ import { ImpresoraService } from 'src/app/services/impresora.service';
 })
 export class SocioPage implements OnInit {
   private _servicesImpresora = inject(ImpresoraService)
-  private alerta = inject(AlertService)
-  private navController = inject(NavController)
-  private loaginServices = inject(LoadingServicesService)
-  private _router = inject(Router)
   private userServices = inject(UsuariosService)
+  private navController = inject(NavController)
+  private _spinner = inject(SpinnerNewService);
+  private alerta = inject(AlertService)
+  private _router = inject(Router)
 
   private subscription: Subscription = new Subscription;
   public areas: any = [];
@@ -43,7 +40,6 @@ export class SocioPage implements OnInit {
   nombre: any;
   apellido: any;
 
-
   ngOnInit() {
     this.alias = 'Matriz';
     this.id = '10'
@@ -55,31 +51,21 @@ export class SocioPage implements OnInit {
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
   }
 
-  servicio() {
-
-  }
-
   back(): void {
     this.navController.back();
   }
 
 
   async onCardClick(card: any) {
-
     if (card.aid == '19') {
       this._router.navigate(['/peluqueria']);
 
     } else if (card.aid == '20') {
       this._router.navigate(['/medicina']);
-
-
     } else if (card.aid == '21') {
       this._router.navigate(['/odontologia']);
-
-
     } else {
-      await this.loaginServices.show('Cargando...');
-      this.subscription.add(
+      // this.subscription.add(
         this.userServices.getCodigo().subscribe(resp => {
           this.codigoId = resp.data.cid
           const usuario = {
@@ -92,43 +78,53 @@ export class SocioPage implements OnInit {
             idcodigo: this.codigoId,
             usocio: 'Si'
           };
-
-          this.userServices.crearTurno(usuario).subscribe(async response => {
+          
+          this._spinner.show();
+          this.userServices.crearTurno(usuario).pipe(
+            finalize(()=>this._spinner.hide())
+          ).subscribe(async response => {
             if (response.success) {
               const area = response.data.AreaNombre.normalize("NFD") // Descompone caracteres acentuados
                 .replace(/[\u0300-\u036f]/g, "") // Elimina los diacríticos (tildes)
                 .toUpperCase();
               this._servicesImpresora.impresoraAtencionClienteCredito(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
               // this.handleDocumento(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
-              this.loaginServices.hide();
               this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
               this.back()
             }
           }, async error => {
-            console.log(error)
-            this.loaginServices.hide();
+            console.log('Mi error',error)
             this.alerta.presentModal('¡Atención!', error.error.error, 'alert-circle-outline', 'warning');
           });
 
         })
-      )
+      // )
     }
   }
-
 
   formatDate(dateString: string): string {
     return moment.utc(dateString).format('YYYY-MM-DD HH:mm');
   }
 
   listArea(): void {
-    this.subscription.add(
-      this.userServices.getArea(this.alias, this.id).subscribe(resp => {
+    this._spinner.show()
+      this.userServices.getArea(this.alias, this.id).pipe(
+        finalize(()=>this._spinner.hide())
+      ).subscribe(resp => {
         this.areas = resp.data.slice(0, 2)
         this.service = resp.data.slice(2)
       })
-    )
   }
 
+
+  // listArea(): void {
+  //   this.subscription.add(
+  //     this.userServices.getArea(this.alias, this.id).subscribe(resp => {
+  //       this.areas = resp.data.slice(0, 2)
+  //       this.service = resp.data.slice(2)
+  //     })
+  //   )
+  // }
 
   // impresora
   // async handleDocumento(alias: any, turno: any, area: any, fecha: any) {

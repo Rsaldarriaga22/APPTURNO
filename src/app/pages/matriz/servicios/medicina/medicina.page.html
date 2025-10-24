@@ -25,24 +25,41 @@
           </svg>
         </div>
         <div class="error__title">
-          Hace {{cantidadNumeroDiaUltimaSolicitud}} días ya utilizó este servicio
-        </div>
-        <div class="error__close">
-          <svg height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="m15.8333 5.34166-1.175-1.175-4.6583 4.65834-4.65833-4.65834-1.175 1.175 4.65833 4.65834-4.65833 4.6583 1.175 1.175 4.65833-4.6583 4.6583 4.6583 1.175-1.175-4.6583-4.6583z"
-              fill="#393a37"></path>
-          </svg>
+          Ya ha utilizado este servicio. Espere 6 días desde su último turno para volver a acceder.
+          <!-- Hace {{cantidadNumeroDiaUltimaSolicitud}} días ya utilizó este servicio -->
         </div>
       </div>
     </div>
     <br>
     <br>
 
-
-
     <div *ngIf="pendiente">
       <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Fecha solicitud</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Turno</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
+            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr >
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ultimoTurno.FECHATURNO}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ultimoTurno.HORARIO}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+              <ion-text class="pendiente" *ngIf="ultimoTurno.ESTADO == 'Pendiente'">{{ultimoTurno.ESTADO}}</ion-text>
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                @if(activeButtom){
+                <ion-button color="danger" *ngIf="ultimoTurno.ESTADO == 'Pendiente'"
+                (click)="cancelarSolicitud(ultimoTurno.IDSOLICITUD)">Cancelar</ion-button>
+              }
+              </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- <table style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr>
             <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Fecha solicitud</th>
@@ -59,12 +76,14 @@
               <ion-text class="pendiente" *ngIf="x.ESTADO == 'Pendiente'">{{x.ESTADO}}</ion-text>
             </td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-              <ion-button color="danger" *ngIf="x.ESTADO == 'Pendiente'"
+                @if(activeButtom){
+                <ion-button color="danger" *ngIf="x.ESTADO == 'Pendiente'"
                 (click)="cancelarSolicitud(x.IDSOLICITUD)">Cancelar</ion-button>
-            </td>
+              }
+              </td>
           </tr>
         </tbody>
-      </table>
+      </table> -->
       <br>
       <br>
     </div>

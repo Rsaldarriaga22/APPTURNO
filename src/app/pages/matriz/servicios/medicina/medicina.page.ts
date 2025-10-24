@@ -8,8 +8,8 @@ import { Persona } from 'src/app/models/Persona';
 import { Solicitud } from 'src/app/models/Solicitud';
 import { AlertService } from 'src/app/services/alert.service';
 import { ImpresoraService } from 'src/app/services/impresora.service';
-import { LoadingServicesService } from 'src/app/services/loading-services.service';
 import { PeluqueriaService } from 'src/app/services/peluqueria.service';
+import { SpinnerNewService } from 'src/app/util/spinner-new/spinner-new.service';
 
 @Component({
   selector: 'app-medicina',
@@ -19,6 +19,14 @@ import { PeluqueriaService } from 'src/app/services/peluqueria.service';
 })
 export class MedicinaPage implements OnInit {
   private _servicesImpresora = inject(ImpresoraService)
+  private _spinner = inject(SpinnerNewService);
+  private _servicesPeluqueria = inject(PeluqueriaService)
+  private navController = inject(NavController)
+  private alerta = inject(AlertService)
+
+  activeButtom: boolean = true;
+  public ultimoTurno: any;
+
   nombre: any;
   apellido: any;
   listaUsuario: any = {}
@@ -48,13 +56,7 @@ export class MedicinaPage implements OnInit {
   public emailPersonaConsultada: string = '';
   public nombrePersonaConsultada: string = '';
   public pendiente: boolean = false;
-
-  constructor(
-    private loaginServices: LoadingServicesService,
-    private _servicesPeluqueria: PeluqueriaService,
-    private navController: NavController,
-    private alerta: AlertService,
-  ) { }
+  public diasAExcluir: number[] = [];
 
   ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -62,16 +64,25 @@ export class MedicinaPage implements OnInit {
     this.cedula = localStorage.getItem('cedula');
     this.nombre = this.listaUsuario.nombres.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
+    this.suspendirDias()
+  }
 
-    this.getSeisDias();
-    this.verificarSitieneSeguroMortuorio()
-    this.getHorariosDiarias();
-    this.getCantidadHorarios();
+
+  // Convierte  en un objeto Date del día actual
+  convertirHora(horaStr: string): Date {
+    const [time, meridiem] = horaStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+
+    if (meridiem.toLowerCase() === 'pm' && hours < 12) hours += 12;
+    if (meridiem.toLowerCase() === 'am' && hours === 12) hours = 0;
+
+    const fecha = new Date();
+    fecha.setHours(hours, minutes, 0, 0);
+    return fecha;
   }
 
 
   EnviarSolicitud(): void {
-
     if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
       this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
     } else {
@@ -80,14 +91,13 @@ export class MedicinaPage implements OnInit {
       this.solicitudCreate.ESTADO = "Pendiente";
       this.solicitudCreate.IDSERVICIO = 3;
       this.solicitudCreate.IDSUCURSAL = 1
-      this.loaginServices.show('Cargando...');
- 
+      this._spinner.show();
       this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
         response => {
           this.solicitudCreate.IDCLIENTE = response.idcliente;
           this.solicitudCreate.IDPROFESIONAL = 3;
           this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(
-            finalize(()=> this.loaginServices.hide())
+            finalize(() => this._spinner.hide())
           ).subscribe(
             response => {
               this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'MEDICINA G.')
@@ -98,36 +108,25 @@ export class MedicinaPage implements OnInit {
               this.getSolicitudesAlmacenadas()
             }
           )
-        }, error => {
-          this.loaginServices.hide();
-          console.log(error);
         }
       )
     }
-
   }
 
   enviarNotificacion(): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Medicina General', this.nombrePersonaConsultada).subscribe(
-      response => {
-        this.loaginServices.hide();
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
-      }
-    )
+    this._spinner.show();
+    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Medicina General', this.nombrePersonaConsultada).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe()
   }
 
-
-
   verificarSitieneSeguroMortuorio(): void {
+    this._spinner.show();
     this.getSeisDias();
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).subscribe(
+    this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe(
       response => {
-        this.loaginServices.hide();
-
         if (response.response == "SI EXISTE") {
           this.actualizarTipoCuentaTipoSeguro(this.cedula, response.TIPOCUENTA, response.TIPO);
           this.tipo = response.TIPO;
@@ -142,15 +141,10 @@ export class MedicinaPage implements OnInit {
           this.nombrePersonaConsultada = response.data.NOMBREUNIDO;
           this.VerificarSiExitePersona();
           this.getSolicitudesAlmacenadas();
-
         } else {
           this.siTieneSeguroMortuorio = "noexiste"
-          this.loaginServices.hide();
+          this._spinner.hide();
         }
-
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
       }
     )
   }
@@ -165,8 +159,11 @@ export class MedicinaPage implements OnInit {
               this.solicitudesAlmacenadas = response.response;
               // Acceder al último objeto en el arreglo
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
+
+              this.ultimoTurno = ultimaSolicitud
+              this.controlar5Minutos(ultimaSolicitud.FECHA)
+
               if (ultimaSolicitud.ESTADO == "Pendiente") {
-                console.log('datoss', ultimaSolicitud.ESTADO);
                 this.pendiente = true
               }
               if (response.response) {
@@ -180,25 +177,35 @@ export class MedicinaPage implements OnInit {
           )
         }
       }, async error => {
-
         console.log(error);
       }
     )
+  }
 
+  controlar5Minutos(fecha: string) {
+    const horaBaseStr = fecha;
+    const horaBase = new Date(horaBaseStr.replace(' ', 'T'));
+    const horaLimite = new Date(horaBase.getTime() + 5 * 60 * 1000);
+    this.intervalo = setInterval(() => {
+      const ahora = new Date();
+      if (ahora >= horaLimite) {
+        this.activeButtom = false
+        clearInterval(this.intervalo);
+      } else {
+        this.activeButtom = true
+      }
+    }, 300)
   }
 
   cancelarSolicitud(idsolicitud: number): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.deleteSolicitud(idsolicitud).subscribe(
-      response => {
-        this.loaginServices.hide()
-        this.alerta.presentModal('¡Excelente!', 'Solicitud cancelada con exito!!', 'checkmark-circle-outline', 'success');
-        this.navController.back();
-        this.getSolicitudesAlmacenadas();
-      }, error => {
-        this.loaginServices.hide()
-        console.log(error);
-      }
+    this._spinner.show();
+    this._servicesPeluqueria.deleteSolicitud(idsolicitud).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe(() => {
+      this.alerta.presentModal('¡Excelente!', 'Solicitud cancelada con exito!!', 'checkmark-circle-outline', 'success');
+      this.navController.back();
+      this.getSolicitudesAlmacenadas();
+    }
     )
   }
 
@@ -219,10 +226,8 @@ export class MedicinaPage implements OnInit {
   }
 
   VerificarSiExitePersona(): void {
-
     this._servicesPeluqueria.getpersonaPorCedula(this.cedula).subscribe(
       response => {
-
         if (response.error) {
           this.agregarPersonaCliente();
         } else {
@@ -243,15 +248,11 @@ export class MedicinaPage implements OnInit {
     )
   }
 
-
   agregarPersonaCliente(): void {
-
     this._servicesPeluqueria.createPersona(this.persona).subscribe(
       response => {
-
         this.agregarCliente(response.idpersona);
       }, error => {
-
         console.log(error);
       }
     )
@@ -261,29 +262,18 @@ export class MedicinaPage implements OnInit {
   agregarCliente(idpersona: number): void {
     this.cliente.IDPERSONA = idpersona;
     this.cliente.ULTIMAFECHASOLICUTDUD = new Date();
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.createCliente(this.cliente).subscribe(
-      response => {
-        this.loaginServices.hide();
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
-      }
-    )
+    this._spinner.show();
+    this._servicesPeluqueria.createCliente(this.cliente).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe()
   }
 
 
   actualizarTipoCuentaTipoSeguro(identificacion: string, tipocuenta: string, tiposeguro: string): void {
-    this._servicesPeluqueria.actualizarTipocuentaTipoSeguro(identificacion, tipocuenta, tiposeguro).subscribe(
-      response => {
-      }, error => {
-        console.log(error);
-      }
-    )
+    this._servicesPeluqueria.actualizarTipocuentaTipoSeguro(identificacion, tipocuenta, tiposeguro).subscribe()
   }
 
   getSeisDias(): Promise<void> {
-
     return new Promise((resolve) => {
       var diaExport = 0; // 11
       var dias = [];
@@ -348,20 +338,35 @@ export class MedicinaPage implements OnInit {
             });
           }
         }
-
-
+      }
+      // suspender dias
+      if (this.diasAExcluir && this.diasAExcluir.length > 0) {
+        dias = dias.filter(d => !this.diasAExcluir.includes(d.dia));
       }
       this.diasDisponibles = dias;
-      setTimeout(() => resolve(), 0);
+    })
+  }
+
+  suspendirDias() {
+    this._spinner.show()
+    this._servicesPeluqueria.suspenderDias(3).subscribe({
+      next: (res) => {
+        this.diasAExcluir = res.data
+        this.getSeisDias();
+        this.verificarSitieneSeguroMortuorio()
+        this.getHorariosDiarias();
+        this.getCantidadHorarios();
+      }
     })
   }
 
   getCantidadHorarios(): void {
-    this._servicesPeluqueria.getCount(3).subscribe(
+    this._spinner.show()
+    this._servicesPeluqueria.getCount(3).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe(
       response => {
         this.cantidadTurnosAlDia = response.response.COUNT;
-      }, error => {
-        console.log(error);
       }
     )
   }
@@ -482,7 +487,6 @@ export class MedicinaPage implements OnInit {
     return respuesta;
   }
 
-
   getFechaTurno(): string {
     var partes = this.fechaSeleccionada.split("#");
     var dia = '';
@@ -492,5 +496,11 @@ export class MedicinaPage implements OnInit {
       dia = partes[0];
     }
     return partes[3] + '-' + Fechac.transformarDeMesAhNumero(partes[2]) + '-' + dia;
+  }
+
+  ngOnDestroy(): void {
+    if (this.intervalo) {
+      clearInterval(this.intervalo);
+    }
   }
 }

@@ -10,8 +10,8 @@ import { Solicitud } from 'src/app/models/Solicitud';
 import { Sucursal } from 'src/app/models/Sucursales';
 import { AlertService } from 'src/app/services/alert.service';
 import { ImpresoraService } from 'src/app/services/impresora.service';
-import { LoadingServicesService } from 'src/app/services/loading-services.service';
 import { PeluqueriaService } from 'src/app/services/peluqueria.service';
+import { SpinnerNewService } from 'src/app/util/spinner-new/spinner-new.service';
 
 @Component({
   selector: 'app-peluqueria',
@@ -23,10 +23,9 @@ export class PeluqueriaPage implements OnInit {
   private _servicesImpresora = inject(ImpresoraService)
   private spinner = inject(NgxSpinnerService)
   private alerta = inject(AlertService)
-  private loaginServices = inject(LoadingServicesService)
   private _servicesPeluqueria = inject(PeluqueriaService)
   private navController = inject(NavController)
-
+  private _spinner = inject(SpinnerNewService);
 
   nombre: any;
   apellido: any;
@@ -56,8 +55,11 @@ export class PeluqueriaPage implements OnInit {
   public emailPersonaConsultada: string = '';
   public cantidadNumeroDiaUltimaSolicitud: number = 15;
   public pendiente: boolean = false;
-
   horarioSeleccionado: number | null = null; // Guarda el ID del horario seleccionado
+  activeButtom: boolean = true;
+  public ultimoTurno: any;
+  public diasAExcluir: number[] = [];
+
 
   async ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -65,60 +67,48 @@ export class PeluqueriaPage implements OnInit {
     this.cedula = localStorage.getItem('cedula');
     this.nombre = this.listaUsuario.nombres.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
-    this.getSeisDias();
-    this.verificarSitieneSeguroMortuorio()
-    this.getCantidadHorarios();
-    this.getHorariosDiarias();
+    this.suspendirDias()
+    // this.getSeisDias();
+
   }
 
-  
-  EnviarSolicitud(): void {
 
+
+  EnviarSolicitud(): void {
     if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
       this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
     } else {
-      this.loaginServices.show('Cargando...');
+      this._spinner.show();
       this.solicitudCreate.FECHATURNO = this.getFechaTurno();
       this.solicitudCreate.FECHA = Fechac.fechaActual() + ' ' + Fechac.horaActual();
       this.solicitudCreate.ESTADO = "Pendiente";
       this.solicitudCreate.IDSERVICIO = 1;
       this.solicitudCreate.IDSUCURSAL = 1;
-
-      this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
+      this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).pipe(
+        finalize(() => this._spinner.hide())
+      ).subscribe(
         response => {
-           this.loaginServices.hide();
-           this.solicitudCreate.IDCLIENTE = response.idcliente;
-           this.solicitudCreate.IDPROFESIONAL = 2;
-
-          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(finalize(()=> this.loaginServices.hide())).subscribe(
-            response => {
-              this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'PELUQUERIA')
-              this.enviarNotificacion()
-              this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-              this.navController.back();
-              this.navController.back();
-              this.getSolicitudesAlmacenadas()
-            }
+          this.solicitudCreate.IDCLIENTE = response.idcliente;
+          this.solicitudCreate.IDPROFESIONAL = 2;
+          this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(finalize(() => this._spinner.hide())).subscribe(() => {
+            this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'PELUQUERIA')
+            this.enviarNotificacion()
+            this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+            this.navController.back();
+            this.navController.back();
+            this.getSolicitudesAlmacenadas()
+          }
           )
-        }, error => {
-          this.loaginServices.hide();
-          console.log(error);
+        }
+      )
     }
-       )
-     }
-
   }
 
   enviarNotificacion(): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Peluquería', this.nombrePersonaConsultada).subscribe(
-      response => {
-        this.loaginServices.hide();
-      }, error => {
-        this.loaginServices.hide();
-        console.log(error);
-      }
-    )
+    this._spinner.show();
+    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Peluquería', this.nombrePersonaConsultada).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe()
   }
 
   seleccionar(fecha: string, idhorario: number): void {
@@ -129,30 +119,23 @@ export class PeluqueriaPage implements OnInit {
     this.activeBoton = true;
     this.solicitudCreate.IDHORARIO = idhorario;
     this.horarioSeleccionado = idhorario;
-
-
-
   }
 
   getHorariosDiarias(): void {
-    this._servicesPeluqueria.getall(1).subscribe(
+    this._servicesPeluqueria.getall(1).pipe(
+      finalize(()=>this._spinner.hide())
+    ).subscribe(
       async response => {
         this.horariosAll = response.response;
-      }, async error => {
-        console.log(error);
       }
     )
   }
-
 
   async getCantidadHorarios() {
     this._servicesPeluqueria.getCount(1).subscribe(
       async response => {
         this.cantidadTurnosAlDia = response.response.COUNT;
-      }, async error => {
-        console.log(error);
-      },
-
+      }
     )
   }
 
@@ -219,8 +202,6 @@ export class PeluqueriaPage implements OnInit {
     return respuesta;
   }
 
-
-
   getFechaTurno(): string {
     var partes = this.fechaSeleccionada.split("#");
     var dia = '';
@@ -231,7 +212,6 @@ export class PeluqueriaPage implements OnInit {
     }
     return partes[3] + '-' + Fechac.transformarDeMesAhNumero(partes[2]) + '-' + dia;
   }
-
 
   getSeisDias(): void {
     var diaExport = 0; // 11
@@ -287,7 +267,6 @@ export class PeluqueriaPage implements OnInit {
           }
         }
       }
-
       if (nombreDelDia != 'sabado') {
         if (nombreDelDia != 'domingo') {
           dias.push({
@@ -298,18 +277,34 @@ export class PeluqueriaPage implements OnInit {
           });
         }
       }
-
     }
+
+    if (this.diasAExcluir && this.diasAExcluir.length > 0) {
+      dias = dias.filter(d => !this.diasAExcluir.includes(d.dia));
+    }
+
     this.diasDisponibles = dias;
+  }
+
+
+  suspendirDias() {
+    this._spinner.show()
+    this._servicesPeluqueria.suspenderDias(1).subscribe({
+      next: (res) => {
+        this.diasAExcluir = res.data
+        this.getSeisDias();
+        this.verificarSitieneSeguroMortuorio()
+        this.getCantidadHorarios();
+        this.getHorariosDiarias();
+       
+      }
+    })
   }
 
   async verificarSitieneSeguroMortuorio() {
     this.getSeisDias();
-    await this.loaginServices.show('Cargando...');
-
     this._servicesPeluqueria.verificarSeguroMortuorio(this.cedula).subscribe(
       async response => {
-        this.loaginServices.hide();
         if (response.response == "SI EXISTE") {
           this.actualizarTipoCuentaTipoSeguro(this.cedula, response.TIPOCUENTA, response.TIPO);
           if (response.TIPO == "AHORRO JUNIOR") {
@@ -330,22 +325,15 @@ export class PeluqueriaPage implements OnInit {
           // this.actualizarEmail();
         } else {
           this.siTieneSeguroMortuorio = "noexiste"
-          this.loaginServices.hide();
+           this._spinner.hide();
         }
-      }, async error => {
-        this.loaginServices.hide();
-        console.log(error);
       }
     )
   }
 
-
-
   async VerificarSiExitePersona() {
-
     this._servicesPeluqueria.getpersonaPorCedula(this.cedula).subscribe(
       async response => {
-
         if (response.error) {
           this.agregarPersonaCliente();
         } else {
@@ -361,81 +349,84 @@ export class PeluqueriaPage implements OnInit {
           )
         }
       }, async error => {
-
         console.log(error);
       }
     )
   }
 
   async agregarPersonaCliente() {
-    await this.loaginServices.show('Cargando...');
+  
     this._servicesPeluqueria.createPersona(this.persona).subscribe(
       async response => {
-        this.loaginServices.hide();
         this.agregarCliente(response.idpersona);
-      }, async error => {
-        this.loaginServices.hide();
-        console.log(error);
       }
     )
   }
 
-  async getSolicitudesAlmacenadas() {
 
+  async getSolicitudesAlmacenadas() {
     this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(
       async response => {
-
         this.solicitudCreate.IDCLIENTE = response.idcliente;
         if (!response.error) {
-
           this._servicesPeluqueria.getSolicitudPorCliente(response.idcliente, 1).subscribe(
             async response => {
-
               this.solicitudesAlmacenadas = response.response;
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
+              this.ultimoTurno = ultimaSolicitud
+              this.controlar5Minutos(ultimaSolicitud.FECHA)
+
               if (ultimaSolicitud.ESTADO == "Pendiente") {
                 this.pendiente = true
               }
-
               if (response.response) {
                 this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
               } else {
                 this.cantidadNumeroDiaUltimaSolicitud = 15;
               }
-
             }, async error => {
-
               console.log(error);
             }
           )
         }
       }, async error => {
-
         console.log(error);
       }
     )
   }
 
-  cancelarSolicitud(idsolicitud: number): void {
-    this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.deleteSolicitud(idsolicitud).subscribe(
-      response => {
-        this.loaginServices.hide()
-        this.alerta.presentModal('¡Excelente!', 'Solicitud cancelada con exito!!', 'checkmark-circle-outline', 'success');
-        this.navController.back();
-        this.getSolicitudesAlmacenadas();
-      }, error => {
-        this.loaginServices.hide()
-        console.log(error);
+  controlar5Minutos(fecha: string) {
+    const horaBaseStr = fecha;
+    const horaBase = new Date(horaBaseStr.replace(' ', 'T'));
+    const horaLimite = new Date(horaBase.getTime() + 5 * 60 * 1000);
+    this.intervalo = setInterval(() => {
+      const ahora = new Date();
+      if (ahora >= horaLimite) {
+        this.activeButtom = false
+        clearInterval(this.intervalo);
+      } else {
+        this.activeButtom = true
       }
+    }, 300)
+  }
+
+
+  cancelarSolicitud(idsolicitud: number): void {
+    this._spinner.show();
+    this._servicesPeluqueria.deleteSolicitud(idsolicitud).pipe(
+      finalize(() => this._spinner.hide())
+    ).subscribe(() => {
+      this.alerta.presentModal('¡Excelente!', 'Solicitud cancelada con exito!!', 'checkmark-circle-outline', 'success');
+      this.navController.back();
+      this.getSolicitudesAlmacenadas();
+    }
     )
   }
 
   getUltimaSolicitudEnviada(idcliente: number): void {
-    this.spinner.show();
+   
     this._servicesPeluqueria.getUltimaSolicitudPorCliente(idcliente, 1).subscribe(
       response => {
-        this.spinner.hide();
         if (response.response) {
           this.ultimasolicitudesAlmacenadas = response.response;
           var diaDIferencia = Fechac.restarFechas(this.ultimasolicitudesAlmacenadas.FECHATURNO, Fechac.fechaActual())
@@ -443,47 +434,28 @@ export class PeluqueriaPage implements OnInit {
         } else {
           this.cantidadNumeroDiaUltimaSolicitud = 15;
         }
-      }, error => {
-        this.spinner.hide();
-        console.log(error);
       }
     )
   }
-
 
   async agregarCliente(idpersona: number) {
     this.cliente.IDPERSONA = idpersona;
     this.cliente.ULTIMAFECHASOLICUTDUD = new Date();
-    await this.loaginServices.show('Cargando...');
-    this._servicesPeluqueria.createCliente(this.cliente).subscribe(
-      async response => {
-        this.loaginServices.hide();
-      }, async error => {
-        this.loaginServices.hide();
-        console.log(error);
-      }
-    )
+   
+    this._servicesPeluqueria.createCliente(this.cliente).subscribe()
   }
 
-
   actualizarTipoCuentaTipoSeguro(identificacion: string, tipocuenta: string, tiposeguro: string): void {
-    this._servicesPeluqueria.actualizarTipocuentaTipoSeguro(identificacion, tipocuenta, tiposeguro).subscribe(
-      response => {
-      }, error => {
-        console.log(error);
-      }
-    )
+    this._servicesPeluqueria.actualizarTipocuentaTipoSeguro(identificacion, tipocuenta, tiposeguro).subscribe()
   }
 
   back(): void {
     this.navController.back();
   }
 
-
   isSelecteda(index: number): boolean {
     return this.selectedDayIndex === index;
   }
-
 
   toggleActivea(index: number, dia: any): void {
     if (this.selectedDayIndex === index) {
@@ -497,9 +469,7 @@ export class PeluqueriaPage implements OnInit {
       }, 3000);
     } else {
       this.selectedDayIndex = index;
-
       this.fechaSeleccionada = `${dia.dia}#${dia.nombre}#${dia.mes}#${dia.anio}`;
-
       this.turnoSeleccionadoShow = false;
       clearInterval(this.intervalo)
       this.turnosShow = true;
@@ -509,5 +479,4 @@ export class PeluqueriaPage implements OnInit {
       }, 3000);
     }
   }
-
 }

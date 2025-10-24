@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 .card {
   width: 45%;
    height: 170px;
@@ -20,6 +13,7 @@
     font-family: "Times New Roman", Times, serif;
     font-weight: bold;
     font-size: 19px;
+    padding-top: 19px;
  }
 
 
@@ -135,6 +129,11 @@
     padding-left: 13px;
     padding-right: 13px;
   }
+}
+
+.icono{
+  width: 80px;
+  height: 80px;
 }
 
 

@@ -13,16 +13,16 @@ import { HttpClientModule } from '@angular/common/http';
 import { AlertService } from './services/alert.service';
 import { NgxSpinnerModule } from "ngx-spinner";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { SpinnerNewComponent } from "./util/spinner-new/spinner-new.component";
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    
-    BrowserModule,HttpClientModule, IonicModule.forRoot(), AppRoutingModule,
+    BrowserModule, HttpClientModule, IonicModule.forRoot(), AppRoutingModule,
     BrowserAnimationsModule,
     NgxSpinnerModule,
-  
-  ],
+    SpinnerNewComponent
+],
   providers: [  { provide: RouteReuseStrategy, useClass: IonicRouteStrategy},
     AlertService,
     // LoadingServicesService,

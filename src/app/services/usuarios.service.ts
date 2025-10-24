@@ -29,10 +29,9 @@ export class UsuariosService {
   }
 
   getArea(agnombre: string, agid: string): Observable<any> {
-
+    console.log(agnombre, agid)
     let datos = this.url + `getArea/${agnombre}/${agid}`;
-    return this._http.get<areaModel>(datos)
-    
+    return this._http.get<areaModel>(datos) 
   }
 
 

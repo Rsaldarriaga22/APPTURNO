@@ -18,16 +18,29 @@
       <p>Seleccione su área para proceder con la asignación de su turno.</p>
     </ion-text>
 
-
     <div *ngFor="let card of areas; let i = index" (click)="onCardClick(card)" class="tarjeta">
-      <ion-avatar
-        style="background-color: rgb(238, 238, 238); display: flex; justify-content: center; align-items: center; width: 13%; height: 13%; padding: 10px;">
-        <img [src]="'assets/icon/' + card.aicon" />
-      </ion-avatar>
+      <img class="icono" [src]="'assets/icon/' + card.aicon" />
       <p>{{card.anombre | uppercase}}</p>
     </div>
 
     <ion-grid style="margin: 20px;">
+      <ion-row class="card-container">
+        <div class="card" *ngFor="let card of service; let i = index" (click)="onCardClick(card)">
+          <img class="icono" [src]="'assets/icon/' + card.aicon" />
+          <p>{{card.anombre | uppercase}}</p>
+        </div>
+      </ion-row>
+    </ion-grid>
+
+     <!-- <div *ngFor="let card of areas; let i = index" (click)="onCardClick(card)" class="tarjeta">
+       <ion-avatar
+        style="background-color: rgb(238, 238, 238); display: flex; justify-content: center; align-items: center; width: 13%; height: 13%; padding: 10px;">
+        <img  [src]="'assets/icon/' + card.aicon" />
+      </ion-avatar> 
+      <p>{{card.anombre | uppercase}}</p>
+    </div> -->
+
+    <!-- <ion-grid style="margin: 20px;">
       <ion-row class="card-container">
         <div class="card" *ngFor="let card of service; let i = index" (click)="onCardClick(card)">
           <ion-avatar
@@ -37,7 +50,7 @@
           <p>{{card.anombre | uppercase}}</p>
         </div>
       </ion-row>
-    </ion-grid>
+    </ion-grid> -->
   </div>
 
 </ion-content>

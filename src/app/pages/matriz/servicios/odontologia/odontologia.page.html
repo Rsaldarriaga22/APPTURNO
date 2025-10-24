@@ -26,15 +26,10 @@
           </svg>
         </div>
         <div class="error__title">
-          Hace {{cantidadNumeroDiaUltimaSolicitud}} días ya utilizó este servicio
+          Ya ha utilizado este servicio. Espere 6 días desde su último turno para volver a acceder.
+          <!-- Hace {{cantidadNumeroDiaUltimaSolicitud}} días ya utilizó este servicio -->
         </div>
-        <div class="error__close">
-          <svg height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="m15.8333 5.34166-1.175-1.175-4.6583 4.65834-4.65833-4.65834-1.175 1.175 4.65833 4.65834-4.65833 4.6583 1.175 1.175 4.65833-4.6583 4.6583 4.6583 1.175-1.175-4.6583-4.6583z"
-              fill="#393a37"></path>
-          </svg>
-        </div>
+       
       </div>
     </div>
 
@@ -52,15 +47,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let x of solicitudesAlmacenadas">
-            <td style="border: 1px solid #ddd; padding: 8px;">{{x.FECHATURNO}}</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">{{x.HORARIO}}</td>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ultimoTurno.FECHATURNO}}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ultimoTurno.HORARIO}}</td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-              <ion-text class="pendiente" *ngIf="x.ESTADO == 'Pendiente'">{{x.ESTADO}}</ion-text>
+              <ion-text class="pendiente" *ngIf="ultimoTurno.ESTADO == 'Pendiente'">{{ultimoTurno.ESTADO}}</ion-text>
             </td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-              <ion-button color="danger" *ngIf="x.ESTADO == 'Pendiente'"
-                (click)="cancelarSolicitud(x.IDSOLICITUD)">Cancelar</ion-button>
+               @if(activeButtom){
+              <ion-button color="danger" *ngIf="ultimoTurno.ESTADO == 'Pendiente'"
+                (click)="cancelarSolicitud(ultimoTurno.IDSOLICITUD)">Cancelar</ion-button>
+               }
             </td>
           </tr>
         </tbody>
@@ -68,8 +65,6 @@
       <br>
       <br>
     </div>
-
-
 
     <!-- CARD  NO HAY SEGURO -->
     <div style="text-align: center; display: flex; justify-content: center; align-items: center; margin-top: 20px;"
