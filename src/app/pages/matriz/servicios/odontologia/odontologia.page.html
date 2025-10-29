@@ -10,12 +10,9 @@
 
   <ion-text class="name">
     <p><b>Hola!</b> {{nombre}} {{apellido}}</p>
-  </ion-text>
+  </ion-text> <br>
 
-
-  <br>
   <div class="paddingContent">
-
     <div style="text-align: center; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
       <div class="error" *ngIf="cantidadNumeroDiaUltimaSolicitud < 15">
         <div class="error__icon">
@@ -29,12 +26,8 @@
           Ya ha utilizado este servicio. Espere 6 días desde su último turno para volver a acceder.
           <!-- Hace {{cantidadNumeroDiaUltimaSolicitud}} días ya utilizó este servicio -->
         </div>
-       
       </div>
-    </div>
-
-    <br>
-    <br>
+    </div> <br> <br>
 
     <div *ngIf="pendiente">
       <table style="width: 100%; border-collapse: collapse;">
@@ -54,7 +47,7 @@
               <ion-text class="pendiente" *ngIf="ultimoTurno.ESTADO == 'Pendiente'">{{ultimoTurno.ESTADO}}</ion-text>
             </td>
             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-               @if(activeButtom){
+              @if(activeButtom){
               <ion-button color="danger" *ngIf="ultimoTurno.ESTADO == 'Pendiente'"
                 (click)="cancelarSolicitud(ultimoTurno.IDSOLICITUD)">Cancelar</ion-button>
                }

@@ -355,14 +355,12 @@ export class PeluqueriaPage implements OnInit {
   }
 
   async agregarPersonaCliente() {
-  
     this._servicesPeluqueria.createPersona(this.persona).subscribe(
       async response => {
         this.agregarCliente(response.idpersona);
       }
     )
   }
-
 
   async getSolicitudesAlmacenadas() {
     this._servicesPeluqueria.getIdClientePorIdentificacion(this.cedula).subscribe(

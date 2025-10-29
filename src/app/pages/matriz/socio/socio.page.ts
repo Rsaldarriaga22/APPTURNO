@@ -65,6 +65,8 @@ export class SocioPage implements OnInit {
     } else if (card.aid == '21') {
       this._router.navigate(['/odontologia']);
     } else {
+                
+      this._spinner.show();
       // this.subscription.add(
         this.userServices.getCodigo().subscribe(resp => {
           this.codigoId = resp.data.cid
@@ -78,8 +80,7 @@ export class SocioPage implements OnInit {
             idcodigo: this.codigoId,
             usocio: 'Si'
           };
-          
-          this._spinner.show();
+
           this.userServices.crearTurno(usuario).pipe(
             finalize(()=>this._spinner.hide())
           ).subscribe(async response => {
