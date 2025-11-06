@@ -39,7 +39,7 @@ export class OdontologiaPage implements OnInit {
   public solicitudCreate: Solicitud = new Solicitud(0, 0, 0, 0, 0, '', '', '', 0);
   public solicitudesAlmacenadas: Solicitud[] = [];
   public ultimasolicitudesAlmacenadas: Solicitud = new Solicitud(0, 0, 0, 0, 0, '', '', '', 0, '', '');
-  public cantidadNumeroDiaUltimaSolicitud: number = 15;
+  public cantidadNumeroDiaUltimaSolicitud: number = 2;
   selectedDayIndex: number | null = null;
   public turnoSeleccionadoShow: boolean = false;
   public turnosShow: boolean = false;
@@ -116,9 +116,11 @@ export class OdontologiaPage implements OnInit {
             this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'ODONTOLOGIA')
             this.enviarNotificacion();
             this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-            this.navController.back();
-            this.navController.back();
+           
+            // this.navController.back();
+            // this.navController.back();
             this.getSolicitudesAlmacenadas()
+             this.navController.navigateRoot('/home-matriz');
           }
           )
         }, error => {
@@ -183,7 +185,7 @@ export class OdontologiaPage implements OnInit {
               if (response.response) {
                 this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
               } else {
-                this.cantidadNumeroDiaUltimaSolicitud = 8;
+                this.cantidadNumeroDiaUltimaSolicitud = 1;
               }
 
             }, error => {
@@ -217,7 +219,7 @@ export class OdontologiaPage implements OnInit {
           var diaDIferencia = Fechac.restarFechas(this.ultimasolicitudesAlmacenadas.FECHATURNO, Fechac.fechaActual())
           this.cantidadNumeroDiaUltimaSolicitud = diaDIferencia;
         } else {
-          this.cantidadNumeroDiaUltimaSolicitud = 8;
+          this.cantidadNumeroDiaUltimaSolicitud = 1;
         }
       }, error => {
         console.log(error);

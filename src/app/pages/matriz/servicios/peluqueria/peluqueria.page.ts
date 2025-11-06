@@ -54,12 +54,12 @@ export class PeluqueriaPage implements OnInit {
   public nombrePersonaConsultada: string = '';
   public emailPersonaConsultada: string = '';
   public cantidadNumeroDiaUltimaSolicitud: number = 15;
+  public dias: number = 2;
   public pendiente: boolean = false;
   horarioSeleccionado: number | null = null; // Guarda el ID del horario seleccionado
   activeButtom: boolean = true;
   public ultimoTurno: any;
   public diasAExcluir: number[] = [];
-
 
   async ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -69,17 +69,14 @@ export class PeluqueriaPage implements OnInit {
     this.apellido = this.listaUsuario.apellidos.split(' ')[0].toLowerCase().replace(/^\w/, (c: any) => c.toUpperCase());
     this.suspendirDias()
     // this.getSeisDias();
-
   }
-
-
 
   EnviarSolicitud(): void {
     if (this.fechaSeleccionada == "" || this.fechaSeleccionada == null) {
       this.alerta.presentModal('¡Atención!', 'Selecciona la día!', 'alert-circle-outline', 'warning');
     } else {
       this._spinner.show();
-      this.solicitudCreate.FECHATURNO = this.getFechaTurno();
+       this.solicitudCreate.FECHATURNO = this.getFechaTurno();
       this.solicitudCreate.FECHA = Fechac.fechaActual() + ' ' + Fechac.horaActual();
       this.solicitudCreate.ESTADO = "Pendiente";
       this.solicitudCreate.IDSERVICIO = 1;
@@ -91,12 +88,15 @@ export class PeluqueriaPage implements OnInit {
           this.solicitudCreate.IDCLIENTE = response.idcliente;
           this.solicitudCreate.IDPROFESIONAL = 2;
           this._servicesPeluqueria.createSolicitud(this.solicitudCreate).pipe(finalize(() => this._spinner.hide())).subscribe(() => {
+            
+              // await this.delay(300);
             this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'PELUQUERIA')
             this.enviarNotificacion()
             this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-            this.navController.back();
-            this.navController.back();
+            // this.navController.back();
+            // this.navController.back();
             this.getSolicitudesAlmacenadas()
+            this.navController.navigateRoot('/home-matriz');
           }
           )
         }
@@ -286,7 +286,6 @@ export class PeluqueriaPage implements OnInit {
     this.diasDisponibles = dias;
   }
 
-
   suspendirDias() {
     this._spinner.show()
     this._servicesPeluqueria.suspenderDias(1).subscribe({
@@ -408,7 +407,6 @@ export class PeluqueriaPage implements OnInit {
     }, 300)
   }
 
-
   cancelarSolicitud(idsolicitud: number): void {
     this._spinner.show();
     this._servicesPeluqueria.deleteSolicitud(idsolicitud).pipe(
@@ -422,7 +420,6 @@ export class PeluqueriaPage implements OnInit {
   }
 
   getUltimaSolicitudEnviada(idcliente: number): void {
-   
     this._servicesPeluqueria.getUltimaSolicitudPorCliente(idcliente, 1).subscribe(
       response => {
         if (response.response) {

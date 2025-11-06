@@ -65,11 +65,10 @@ export class SocioPage implements OnInit {
     } else if (card.aid == '21') {
       this._router.navigate(['/odontologia']);
     } else {
-                
-      this._spinner.show();
-      // this.subscription.add(
-        this.userServices.getCodigo().subscribe(resp => {
+      this._spinner.show();   
+      this.userServices.getCodigo().subscribe(resp => {
           this.codigoId = resp.data.cid
+          
           const usuario = {
             tcedula: this.cedula,
             tnombres: this.listaUsuario.nombres,
@@ -80,7 +79,6 @@ export class SocioPage implements OnInit {
             idcodigo: this.codigoId,
             usocio: 'Si'
           };
-
           this.userServices.crearTurno(usuario).pipe(
             finalize(()=>this._spinner.hide())
           ).subscribe(async response => {
@@ -88,19 +86,28 @@ export class SocioPage implements OnInit {
               const area = response.data.AreaNombre.normalize("NFD") // Descompone caracteres acentuados
                 .replace(/[\u0300-\u036f]/g, "") // Elimina los diacríticos (tildes)
                 .toUpperCase();
-              this._servicesImpresora.impresoraAtencionClienteCredito(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
-              // this.handleDocumento(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
+
               this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+              //Espera un poquito antes de conectar e imprimir
+
+              await this.delay(300);
+              this._servicesImpresora.impresoraAtencionClienteCredito(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
+              //Esperar un poco para asegurar que la impresión termine
+
+              await this.delay(1000)
               this.back()
+
             }
           }, async error => {
-            console.log('Mi error',error)
             this.alerta.presentModal('¡Atención!', error.error.error, 'alert-circle-outline', 'warning');
           });
-
-        })
-      // )
+      })
+  
     }
+  }
+
+    private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   formatDate(dateString: string): string {

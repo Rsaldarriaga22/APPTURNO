@@ -44,6 +44,8 @@ export class AlertServiceB {
     return result;
   }
 
+
+  
   async sweetAlertImage(title: string, text: string, urlImg: string, widthImg: number, heightImg: number, altImg: string, showCancel: boolean = false) {
     const result = await Swal.fire({
       title: title,

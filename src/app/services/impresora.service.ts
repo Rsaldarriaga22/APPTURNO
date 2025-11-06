@@ -18,74 +18,83 @@ export class ImpresoraService {
     this.handlePrintRecibo(deviceId, serviceUuid, characteristicUuid, nombres, apellidos, fecha, horario, area)
   }
 
-async handlePrintRecibo(
-  deviceId: string,
-  serviceUuid: string,
-  characteristicUuid: string,
-  nombres: string,
-  apellidos: string,
-  fecha: string,
-  horario: string,
-  area: string
-) {
-  if (deviceId && serviceUuid && characteristicUuid) {
-    try {
-      await this.bluetoothOperationsService.Connect(deviceId);
+  async handlePrintRecibo(
+    deviceId: string,
+    serviceUuid: string,
+    characteristicUuid: string,
+    nombres: string,
+    apellidos: string,
+    fecha: string,
+    horario: string,
+    area: string
+  ) {
+    if (deviceId && serviceUuid && characteristicUuid) {
+      try {
+        // Espera breve antes de conectar
+        await this.delay(300);
+        await this.bluetoothOperationsService.Connect(deviceId);
+        await this.delay(300);
 
-      // 🔹 Encabezado
-      await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
-      await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-      await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'FUTURO LAMANENSE');
-      await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'COOPERATIVA DE AHORRO Y CREDITO');
-      await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
-      
-      // 🔹 Espacio
-      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-      
-      // 🔹 Mensaje bonito
-      await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `Estimado/a`);
-      await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${nombres}`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${apellidos}.`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `Le confirmamos que su turno ha`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `sido registrado con exito.`);
-      
-      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-      
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `SERVICIO: ${area}`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `FECHA: ${fecha}`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `HORA: ${horario}`);
+        // 🔹 Encabezado
+        await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
+        await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
+        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, 'FUTURO LAMANENSE\n');
+        // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'FUTURO LAMANENSE');
+        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, 'COOPERATIVA DE AHORRO Y CREDITO\n');
+        // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'COOPERATIVA DE AHORRO Y CREDITO');
+        await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
 
-      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+        // 🔹 Espacio
+        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
 
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `Le recomendamos llegar con`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `10 minutos de anticipacion para`);
-      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `brindarle una mejor atencion.`);
+        // 🔹 Mensaje bonito
+        await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `Estimado/a`);
+        // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `Estimado/a`);
+        await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `${nombres}`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `${apellidos}.`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `Le confirmamos que su turno ha`);
+        // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `Le confirmamos que su turno ha`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `sido registrado con exito.`);
+        // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `sido registrado con exito.`);
 
-      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
 
-      // await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-      // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `¡Gracias por confiar en nosotros!`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `SERVICIO: ${area}`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `FECHA: ${fecha}`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `HORA: ${horario}`);
 
-      // 🔹 Espacios finales
-      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
 
-    } catch (error) {
-      console.error("Error durante la impresión:", error);
-      this.alertaBluetooth.sweetAlert('Upps!', 'Hubo un error al imprimir el documento.', 'error');
-    } finally {
-      await this.bluetoothOperationsService.Disconnect(deviceId);
-      console.log("Desconectado del dispositivo:", deviceId);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `Le recomendamos llegar con`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `10 minutos de anticipacion para`);
+        await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `brindarle una mejor atencion.`);
+
+        // Feed final (avanza papel)
+        for (let i = 0; i < 3; i++) {
+          await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+        }
+        // Espera a que la impresora termine antes de desconectarse
+        await this.delay(1500);
+
+        // // 🔹 Espacios finales
+        // await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+        // await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+        // await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+
+      } catch (error) {
+        this.alertaBluetooth.sweetAlert('Upps!', 'Hubo un error al imprimir el documento.', 'error');
+      } finally {
+        await this.delay(1000);
+        await this.bluetoothOperationsService.Disconnect(deviceId);
+      }
+    } else {
+      this.alertaBluetooth.sweetAlert('Advertencia', 'No se encontró información de la impresora.', 'warning');
     }
-  } else {
-    console.warn('No se encontró información de la impresora.');
-    this.alertaBluetooth.sweetAlert('Advertencia', 'No se encontró información de la impresora.', 'warning');
   }
-}
 
 
   // IMPRESORA PARA ATENCION AL CLIENTE Y CREDITO
@@ -93,66 +102,154 @@ async handlePrintRecibo(
     const deviceId = localStorage.getItem(LOCAL_STORAGE_KEY.BLUETOOTH_DEVICE_ID) ?? '';
     const serviceUuid = localStorage.getItem(LOCAL_STORAGE_KEY.BLUETOOTH_Service_UUID) ?? '';
     const characteristicUuid = localStorage.getItem(LOCAL_STORAGE_KEY.BLUETOOTH_CHARACTERISTIC_UUID) ?? '';
-    this.configuracionImpresora(deviceId, serviceUuid, characteristicUuid, alias, turno, area, fecha)
+    this.configuracionImpresora2(deviceId, serviceUuid, characteristicUuid, alias, turno, area, fecha)
+    // this.configuracionImpresora(deviceId, serviceUuid, characteristicUuid, alias, turno, area, fecha)
   }
 
-  async configuracionImpresora(deviceId: string, serviceUuid: string, characteristicUuid: string, alia: string, turno: string, area: string, fecha: string) {
-    if (deviceId && serviceUuid && characteristicUuid) {
-      try {
-        await this.bluetoothOperationsService.Connect(deviceId);
-        // Imprimir el Logo
-        await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'FUTURO LAMANENSE');
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'COOPERATIVA DE AHORRO Y CREDITO');
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-        // Imprimir el encabezado
+  // Envío seguro: divide texto en fragmentos y espera entre cada uno
+  private async safeWrite(deviceId: string, serviceUuid: string, characteristicUuid: string, text: string) {
+    const chunkSize = 100; // Puedes ajustar entre 80 y 120 según la impresora
+    for (let i = 0; i < text.length; i += chunkSize) {
+      const chunk = text.substring(i, i + chunkSize);
+      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, chunk);
+      await this.delay(120); // pequeña pausa para no saturar el buffer
+    }
+  }
+
+  async configuracionImpresora2(
+    deviceId: string,
+    serviceUuid: string,
+    characteristicUuid: string,
+    alias: string,
+    turno: string,
+    area: string,
+    fecha: string
+  ) {
+    if (!deviceId || !serviceUuid || !characteristicUuid) {
+      this.alertaBluetooth.sweetAlert('Advertencia', 'No se encontró información de la impresora.', 'warning');
+      return;
+    }
+    try {
+
+      await this.bluetoothOperationsService.Connect(deviceId);
+      await this.delay(250); // espera inicial de conexión estable
+
+      // 🔹 Limpieza de buffer al inicio
+      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, '\x1B\x40');
+      await this.delay(100);
+
+      // Encabezado
+      await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
+      await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
+      await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, 'FUTURO LAMANENSE\n');
+      await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, 'COOPERATIVA DE AHORRO Y CREDITO\n');
+      await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
+
+      // Título del turno
+      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+      await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `TURNO\n`);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `${alias}${turno}\n`);
+      await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+
+      // Área
+      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+      await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE\n${area}\n`);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, `${fecha}\n`);
+
+      // Mensaje final
+      await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, '¡Agradecemos tu confianza!\n');
+      await this.safeWrite(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy pronto.\n');
+
+      // Feed final (avanza papel)
+      for (let i = 0; i < 3; i++) {
         await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
-        // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `MODULO   ${modulo}`);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO`);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
-        await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
-
-        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${alia}${turno}`);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
-
-
-        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE`);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${area}`);
-        await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, fecha);
-
-
-        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, '¡Agradecemos tu confianza!');
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy');
-        await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'pronto.');
-
-        // Saltos de linea
-        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-        await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
-
-      } catch (error) {
-        console.error("Error durante la impresión:", error);
-        this.alertaBluetooth.sweetAlert('Upps!', 'Hubo un error al imprimir el documento.', 'error')
-      } finally {
-        await this.bluetoothOperationsService.Disconnect(deviceId);
-        console.log("Desconectado del dispositivo:", deviceId);
       }
-    } else {
-      console.warn('No se encontró información de la impresora.');
-      this.alertaBluetooth.sweetAlert('Advertencia', 'No se encontró información de la impresora.', 'warning')
+
+      // Esperar a que termine de imprimir antes de desconectar
+      // await this.delay(2000);
+      //  Limpieza final del buffer para evitar residuos
+      await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, '\x1B\x40');
+      await this.delay(200);
+
+      
+    } catch (error) {
+      this.alertaBluetooth.sweetAlert('Upps!', 'Hubo un error al imprimir el documento.', 'error');
+    } finally {
+      // Espera adicional antes de desconectar para evitar corte
+      await this.delay(2500);
+      await this.bluetoothOperationsService.Disconnect(deviceId);
     }
   }
 
 
+
+
+  // async configuracionImpresora(deviceId: string, serviceUuid: string, characteristicUuid: string, alia: string, turno: string, area: string, fecha: string) {
+  //   if (deviceId && serviceUuid && characteristicUuid) {
+  //     try {
+  //       await this.bluetoothOperationsService.Connect(deviceId);
+  //       // Imprimir el Logo
+  //       await this.bluetoothOperationsService.TurnOnBold(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'FUTURO LAMANENSE');
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'COOPERATIVA DE AHORRO Y CREDITO');
+
+  //       // Imprimir el encabezado
+  //       await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
+  //       // await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `MODULO   ${modulo}`);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO`);
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+  //       await this.bluetoothOperationsService.TurnOffBold(deviceId, serviceUuid, characteristicUuid);
+
+  //       await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 1, 1);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${alia}${turno}`);
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+
+
+  //       await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `TURNO PARA EL AREA DE`);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, `${area}`);
+  //       await this.bluetoothOperationsService.SetTextSize(deviceId, serviceUuid, characteristicUuid, 0, 0);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, fecha);
+
+
+  //       await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.FeedCenter(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, '¡Agradecemos tu confianza!');
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'Te esperamos de regreso muy');
+  //       await this.bluetoothOperationsService.WriteData(deviceId, serviceUuid, characteristicUuid, 'pronto.');
+
+  //       // Saltos de linea
+  //       await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+  //       await this.bluetoothOperationsService.NewEmptyLine(deviceId, serviceUuid, characteristicUuid);
+
+  //     } catch (error) {
+  //       console.error("Error durante la impresión:", error);
+  //       this.alertaBluetooth.sweetAlert('Upps!', 'Hubo un error al imprimir el documento.', 'error')
+  //     } finally {
+  //       await this.bluetoothOperationsService.Disconnect(deviceId);
+  //       console.log("Desconectado del dispositivo:", deviceId);
+  //     }
+  //   } else {
+  //     console.warn('No se encontró información de la impresora.');
+  //     this.alertaBluetooth.sweetAlert('Advertencia', 'No se encontró información de la impresora.', 'warning')
+  //   }
+  // }
+
+  // prueba para que no se corte la impresion 
 
 }

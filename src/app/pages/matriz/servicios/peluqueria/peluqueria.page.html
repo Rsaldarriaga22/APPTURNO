@@ -14,7 +14,7 @@
   <div class="paddingContent">
 
     <div style="text-align: center; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
-      <div class="error" *ngIf="cantidadNumeroDiaUltimaSolicitud < 15">
+      <div class="error" *ngIf="cantidadNumeroDiaUltimaSolicitud <= 7">
         <div class="error__icon">
           <svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -23,8 +23,7 @@
           </svg>
         </div>
         <div class="error__title">
-          Ya ha utilizado este servicio. Espere 6 días desde su último turno para volver a acceder.
-          <!-- Hace {{cantidadNumeroDiaUltimaSolicitud}} días ya utilizó este servicio -->
+            Servicio utilizado hace {{cantidadNumeroDiaUltimaSolicitud}} días. Espera 8 días para generar nuevamente.
         </div>
       </div>
     </div> <br><br>
@@ -154,16 +153,15 @@
             </div>
           </ion-row>
         </ion-grid>
-
         <br>
       </div>
 
       <div class="botonCenter" *ngIf="activeBoton == true">
-        <div class="boton" (click)="EnviarSolicitud()">
+        <div class="boton"  *ngIf="cantidadNumeroDiaUltimaSolicitud > 7" (click)="EnviarSolicitud()">
           Generar Cita
         </div>
       </div>
-      <br> <br>
+      <br><br>
     </div>
     </div>
 

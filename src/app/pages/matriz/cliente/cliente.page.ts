@@ -39,7 +39,7 @@ export class ClientePage implements OnInit {
     this._spinner.show()
     this.subscription.add(
       this.userServices.getArea(this.alias, this.id).pipe(
-        finalize(()=>this._spinner.hide())
+        finalize(() => this._spinner.hide())
       ).subscribe(resp => {
         this.areas = resp.data.slice(0, 2);
       })
@@ -50,40 +50,53 @@ export class ClientePage implements OnInit {
     this.navController.back();
   }
 
-   onCardClick(card: any) {
+  onCardClick(card: any) {
     this._spinner.show();
     // this.subscription.add(
-      this.userServices.getCodigo().subscribe(resp => {
-        const usuario = {
-          tcedula: this.cedula,
-          tnombres: '',
-          tapellidos: '',
-          tcorreo: '',
-          idarea: card.aid.toString(),
-          idagencia: card.agid.toString(),
-          idcodigo: resp.data.cid,
-          usocio: 'No'
-        };
-        this.userServices.crearTurno(usuario).pipe(
-          finalize(()=>this._spinner.hide())
-        ).subscribe(async response => {
-          if (response.success) {
-            const area = response.data.AreaNombre.normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .toUpperCase();
-            this._servicesImpresora.impresoraAtencionClienteCredito(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
-            this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-            this.back()
-          }
-        },  error => {
-          console.log(error)
-           this._spinner.hide();
-          this.alerta.presentModal('¡Atención!', error.error.error, 'alert-circle-outline', 'warning');
-        })
+    this.userServices.getCodigo().subscribe(resp => {
+      const usuario = {
+        tcedula: this.cedula,
+        tnombres: '',
+        tapellidos: '',
+        tcorreo: '',
+        idarea: card.aid.toString(),
+        idagencia: card.agid.toString(),
+        idcodigo: resp.data.cid,
+        usocio: 'No'
+      };
+      
+      this.userServices.crearTurno(usuario).pipe(
+        finalize(() => this._spinner.hide())
+      ).subscribe(async response => {
+        if (response.success) {
+          const area = response.data.AreaNombre.normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toUpperCase();
+
+          this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
+          //  Espera un poquito antes de conectar e imprimir
+          await this.delay(300);
+          this._servicesImpresora.impresoraAtencionClienteCredito(response.data.alias, response.data.ccodigo, area, this.formatDate(response.data.fechaHora))
+          //  Esperar un poco para asegurar que la impresión termine
+          await this.delay(1000)
+          this.back()
+        }
+      }, error => {
+        console.log(error)
+        this._spinner.hide();
+        this.alerta.presentModal('¡Atención!', error.error.error, 'alert-circle-outline', 'warning');
       })
+    })
     // )
 
   }
+
+
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+
 
   formatDate(dateString: string): string {
     return moment.utc(dateString).format('YYYY-MM-DD HH:mm');
