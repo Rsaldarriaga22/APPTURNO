@@ -82,7 +82,7 @@ export class OdontologiaPage implements OnInit {
       }
     }, 300)
   }
-  
+
   // Convierte  en un objeto Date del día actual
   convertirHora(horaStr: string): Date {
     const [time, meridiem] = horaStr.split(' ');
@@ -116,11 +116,11 @@ export class OdontologiaPage implements OnInit {
             this._servicesImpresora.ImprimirOtrosServices(this.listaUsuario.nombres, this.listaUsuario.apellidos, this.solicitudCreate.FECHATURNO, this.turnoSeleccionado, 'ODONTOLOGIA')
             this.enviarNotificacion();
             this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
-           
+
             // this.navController.back();
             // this.navController.back();
             this.getSolicitudesAlmacenadas()
-             this.navController.navigateRoot('/home-matriz');
+            this.navController.navigateRoot('/home-matriz');
           }
           )
         }, error => {
@@ -177,22 +177,26 @@ export class OdontologiaPage implements OnInit {
               this.solicitudesAlmacenadas = response.response;
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
               this.ultimoTurno = ultimaSolicitud
-              this.controlar5Minutos(ultimaSolicitud.FECHA)
-              if (ultimaSolicitud.ESTADO == "Pendiente") {
-                this.pendiente = true
-              }
 
-              if (response.response) {
-                this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
+              if (this.ultimoTurno.ESTADO == 'Ausente') {              
+                this.cantidadNumeroDiaUltimaSolicitud 
               } else {
-                this.cantidadNumeroDiaUltimaSolicitud = 1;
+                this.controlar5Minutos(ultimaSolicitud.FECHA)
+                if (ultimaSolicitud.ESTADO == "Pendiente") {
+                  this.pendiente = true
+                }
+                if (response.response) {
+                  this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
+                } else {
+                  this.cantidadNumeroDiaUltimaSolicitud = 1;
+                }
               }
-
             }, error => {
               console.log(error);
             }
           )
         }
+        
       }, error => {
         console.log(error);
       }
@@ -373,7 +377,7 @@ export class OdontologiaPage implements OnInit {
 
   getCantidadHorarios(): void {
     this._servicesPeluqueria.getCount(2).pipe(
-      finalize(()=>this._spinner.hide())
+      finalize(() => this._spinner.hide())
     ).subscribe(
       response => {
         this.cantidadTurnosAlDia = response.response.COUNT;

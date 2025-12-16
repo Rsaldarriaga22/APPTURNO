@@ -72,7 +72,6 @@ export class ClientePage implements OnInit {
           const area = response.data.AreaNombre.normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .toUpperCase();
-
           this.alerta.presentModal('¡Excelente!', '¡Turno agendado con éxito!. Nos vemos pronto', 'checkmark-circle-outline', 'success');
           //  Espera un poquito antes de conectar e imprimir
           await this.delay(300);

@@ -106,7 +106,7 @@ export class MedicinaPage implements OnInit {
               // this.navController.back();
               // this.navController.back();
               this.getSolicitudesAlmacenadas()
-               this.navController.navigateRoot('/home-matriz');
+              this.navController.navigateRoot('/home-matriz');
             }
           )
         }
@@ -162,16 +162,22 @@ export class MedicinaPage implements OnInit {
               let ultimaSolicitud = this.solicitudesAlmacenadas[this.solicitudesAlmacenadas.length - 1];
 
               this.ultimoTurno = ultimaSolicitud
-              this.controlar5Minutos(ultimaSolicitud.FECHA)
 
-              if (ultimaSolicitud.ESTADO == "Pendiente") {
-                this.pendiente = true
-              }
-              if (response.response) {
-                this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
+              if (this.ultimoTurno.ESTADO == 'Ausente') {
+                this.cantidadNumeroDiaUltimaSolicitud
               } else {
-                this.cantidadNumeroDiaUltimaSolicitud = 15;
+                this.controlar5Minutos(ultimaSolicitud.FECHA)
+
+                if (ultimaSolicitud.ESTADO == "Pendiente") {
+                  this.pendiente = true
+                }
+                if (response.response) {
+                  this.getUltimaSolicitudEnviada(this.solicitudCreate.IDCLIENTE);
+                } else {
+                  this.cantidadNumeroDiaUltimaSolicitud = 15;
+                }
               }
+
             }, error => {
               console.log(error);
             }
