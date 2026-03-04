@@ -29,7 +29,6 @@ export class UsuariosService {
   }
 
   getArea(agnombre: string, agid: string): Observable<any> {
-    console.log(agnombre, agid)
     let datos = this.url + `getArea/${agnombre}/${agid}`;
     return this._http.get<areaModel>(datos) 
   }
@@ -62,8 +61,8 @@ export class UsuariosService {
   crearTurno(data: any): Observable<any> {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this._http.post(this.url + 'createTurno', data, { headers })
-
   }
+
 
   updateCalificacion(nombre: any, id: any): Observable<any> {
     return this._http.post(this.url + 'updateCalificacion/' + nombre + '/' + id,
