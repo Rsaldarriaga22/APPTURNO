@@ -9,6 +9,8 @@ import { LoadingController } from '@ionic/angular';
 import { finalize, tap } from 'rxjs/operators';
 import { LoadingServicesService } from './loading-services.service';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { v4 as uuidv4 } from 'uuid';
+
 
 @Injectable({
   providedIn: 'root'
@@ -98,10 +100,15 @@ export class PeluqueriaService {
   }
 
   createSolicitud(data: Solicitud): Observable<any> {
-    let params = JSON.stringify(data);
+      let params = {
+      ...data,
+      idempotencyKey: uuidv4()
+    }
+    // let params = JSON.stringify(param);
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this._http.post(this.urlGo + 'solicitud', params, { headers: headers });
   }
+
   notificar(email: string, fecha: string, servicio: string, nombres: string): Observable<any> {
     return this._http.get(this.urlGo + 'enviar-email/' + email + '/' + fecha + '/' + servicio + '/' + nombres);
   }

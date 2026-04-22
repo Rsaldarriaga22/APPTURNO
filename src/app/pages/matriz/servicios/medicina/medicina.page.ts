@@ -57,6 +57,7 @@ export class MedicinaPage implements OnInit {
   public nombrePersonaConsultada: string = '';
   public pendiente: boolean = false;
   public diasAExcluir: number[] = [];
+  diaSeleccionado = false;
 
   ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -408,6 +409,7 @@ export class MedicinaPage implements OnInit {
 
   toggleActivea(index: number, dia: any): void {
     if (this.selectedDayIndex === index) {
+      this.diaSeleccionado = true;
       this.selectedDayIndex = null;
       this.turnoSeleccionadoShow = false;
       clearInterval(this.intervalo)
@@ -418,9 +420,8 @@ export class MedicinaPage implements OnInit {
       }, 3000);
     } else {
       this.selectedDayIndex = index;
-
+      this.diaSeleccionado = true;
       this.fechaSeleccionada = `${dia.dia}#${dia.nombre}#${dia.mes}#${dia.anio}`;
-
       this.turnoSeleccionadoShow = false;
       clearInterval(this.intervalo)
       this.turnosShow = true;

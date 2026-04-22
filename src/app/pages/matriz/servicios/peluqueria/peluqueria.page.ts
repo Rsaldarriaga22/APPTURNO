@@ -60,6 +60,7 @@ export class PeluqueriaPage implements OnInit {
   activeButtom: boolean = true;
   public ultimoTurno: any;
   public diasAExcluir: number[] = [];
+  diaSeleccionado = false;
 
   async ngOnInit() {
     const usuarioString = localStorage.getItem('usuario');
@@ -461,6 +462,7 @@ export class PeluqueriaPage implements OnInit {
 
   toggleActivea(index: number, dia: any): void {
     if (this.selectedDayIndex === index) {
+      this.diaSeleccionado = true;
       this.selectedDayIndex = null;
       this.turnoSeleccionadoShow = false;
       clearInterval(this.intervalo)
@@ -469,7 +471,9 @@ export class PeluqueriaPage implements OnInit {
       this.intervalo = setInterval(() => {
         this.verificarSolicitudesRealizadas()
       }, 3000);
+
     } else {
+      this.diaSeleccionado = true;
       this.selectedDayIndex = index;
       this.fechaSeleccionada = `${dia.dia}#${dia.nombre}#${dia.mes}#${dia.anio}`;
       this.turnoSeleccionadoShow = false;

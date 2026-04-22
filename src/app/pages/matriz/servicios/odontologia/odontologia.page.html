@@ -51,7 +51,7 @@
               @if(activeButtom){
               <ion-button color="danger" *ngIf="ultimoTurno.ESTADO == 'Pendiente'"
                 (click)="cancelarSolicitud(ultimoTurno.IDSOLICITUD)">Cancelar</ion-button>
-               }
+              }
             </td>
           </tr>
         </tbody>
@@ -88,9 +88,9 @@
 
     <div *ngIf="!pendiente">
 
-    <div class="cards">
-      <div class="main-content">
-        <p class="cita"> AGENDAR CITA</p>
+      <div class="cards">
+        <div class="main-content">
+          <p class="cita"> AGENDAR CITA</p>
           <div *ngIf="siTieneSeguroMortuorio == 'existe'">
             <ion-text class="title">
               <p>SELECCIONE EL DIA</p>
@@ -110,34 +110,46 @@
               </ion-row>
             </ion-grid>
           </div>
-        <br>
-        <div *ngIf="horariosDeServicio.length >0">
+          <br>
+
+          @if (diaSeleccionado) {
+          @if(horariosDeServicio === null){
+          <p style="text-align: center;">No existen horarios disponibles.</p>
+          } @else if(horariosDeServicio.length > 0){
           <ion-text class="title2">
             <p>SELECCIONE EL HORARIO</p>
           </ion-text>
-        </div>
-
-        <ion-grid>
-          <ion-row class="card-container">
-            <div *ngFor="let x of horariosDeServicio" class="cardHorario" (click)="seleccionar(x.HORARIO, x.IDHORARIO)"
-              [ngClass]="{'selected': x.IDHORARIO === horarioSeleccionado}">
-              <div class="col">
-                <ion-text class="title-horario">{{ x.HORARIO }}</ion-text>
+          <ion-grid>
+            <ion-row class="card-container">
+              <div *ngFor="let x of horariosDeServicio" class="cardHorario"
+                (click)="seleccionar(x.HORARIO, x.IDHORARIO)"
+                [ngClass]="{'selected': x.IDHORARIO === horarioSeleccionado}">
+                <div class="col">
+                  <ion-text class="title-horario">{{ x.HORARIO }}</ion-text>
+                </div>
               </div>
-            </div>
-          </ion-row>
-        </ion-grid>
+            </ion-row>
+          </ion-grid>
+          }@else {
+          <div style="border: 1px solid rgb(245, 141, 172); margin: 45px; padding: 5px; border-radius: 6px;">
+            <ion-text>
+              <p style="text-align: center;  font-weight: 500;">
+                No existen horarios disponibles para este día.
+              </p>
+            </ion-text>
+          </div>
 
-        <br>
-      </div>
-
-      <div class="botonCenter" *ngIf="activeBoton == true">
-        <div class="boton"  *ngIf="cantidadNumeroDiaUltimaSolicitud > 1" (click)="EnviarSolicitud()">
-          Generar Cita
+          } }
+          <br>
         </div>
+
+        <div class="botonCenter" *ngIf="activeBoton == true">
+          <div class="boton" *ngIf="cantidadNumeroDiaUltimaSolicitud > 1" (click)="EnviarSolicitud()">
+            Generar Cita
+          </div>
+        </div>
+        <br> <br>
       </div>
-      <br> <br>
-    </div>
     </div>
 
 

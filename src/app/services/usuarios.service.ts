@@ -7,7 +7,6 @@ import { codigoModel } from '../models/codigo';
 import { ApiCorreo } from '../models/correoapi';
 import { usuarioModel } from '../models/users';
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -35,20 +34,23 @@ export class UsuariosService {
 
 
   verificarCorreo(): Observable<any> {
-    let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/`;
+    let datos = `https://services.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/`;
+    // let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/`;
     return this._http.get<ApiCorreo>(datos)
   }
 
 
 
   verificar(cedula: any): Observable<any> {
-    let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
+    let datos = `https://services.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
+    // let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
     return this._http.get<ApiCorreo>(datos)
   }
 
 
   verificarCliente(cedula: any): Observable<any> {
-    let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
+    let datos = `https://services.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
+    // let datos = `https://sistemflm.futurolamanense.fin.ec:8088/api/get-cliente-si-existe/${cedula}`;
     return this._http.get<ApiCorreo>(datos)
   }
 
