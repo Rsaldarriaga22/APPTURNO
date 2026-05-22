@@ -133,7 +133,7 @@ export class OdontologiaPage implements OnInit {
 
   enviarNotificacion(): void {
     this._spinner.show();
-    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Medicina General', this.nombrePersonaConsultada).pipe(
+    this._servicesPeluqueria.notificar(this.emailPersonaConsultada, Fechac.fechaActual() + ' ' + Fechac.horaActual(), 'Odontología', this.nombrePersonaConsultada).pipe(
       finalize(() => this._spinner.hide())
     ).subscribe()
   }

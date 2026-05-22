@@ -32,6 +32,7 @@ export class HomeMatrizPage implements OnInit {
       this.inputValue += num;
     }
   }
+
   // 0500008586
   async buscar() {
     this.spinner.show()
@@ -41,6 +42,7 @@ export class HomeMatrizPage implements OnInit {
         finalize(() => this.spinner.hide())
       ).subscribe(
         async (resp) => {
+          console.log('respuesta',resp.response);
           if (resp.response) {
             localStorage.setItem('cedula', this.inputValue);
             const usuarioString = JSON.stringify(resp.response);
@@ -52,6 +54,8 @@ export class HomeMatrizPage implements OnInit {
             this._router.navigate(['/cliente']);
             this.inputValue = ''
           }
+        }, (error) => {
+          console.error('Error en la solicitud:', JSON.stringify(error));
         }
       );
     } else {
